@@ -1,228 +1,161 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<title>Chat V4</title>
+  <meta charset="UTF-8">
+  <title>Messagerie Pro</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f6f9;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+    }
 
-<style>
-body {
-  margin: 0;
-  font-family: Arial;
-  background: #0f172a;
-  color: white;
-}
+    .chat-container {
+      width: 400px;
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
 
-.hidden { display: none; }
+    .header {
+      background: #4a90e2;
+      color: white;
+      padding: 15px;
+      font-size: 18px;
+      font-weight: bold;
+      text-align: center;
+    }
 
-/* Auth */
-.auth {
-  display: flex;
-  flex-direction: column;
-  width: 300px;
-  margin: 100px auto;
-}
+    .messages {
+      flex: 1;
+      padding: 15px;
+      overflow-y: auto;
+    }
 
-input {
-  margin: 5px 0;
-  padding: 10px;
-  border: none;
-}
+    .message {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #e9efff;
+    }
 
-button {
-  padding: 10px;
-  background: #3b82f6;
-  border: none;
-  color: white;
-  cursor: pointer;
-}
+    .meta {
+      font-size: 12px;
+      color: #555;
+      margin-bottom: 3px;
+    }
 
-/* Chat */
-.chat {
-  display: flex;
-  height: 100vh;
-}
+    .input-area {
+      display: flex;
+      border-top: 1px solid #ddd;
+    }
 
-.sidebar {
-  width: 200px;
-  background: #020617;
-  padding: 10px;
-}
+    input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+    }
 
-.room {
-  padding: 10px;
-  cursor: pointer;
-}
+    button {
+      background: #4a90e2;
+      color: white;
+      border: none;
+      padding: 10px 15px;
+      cursor: pointer;
+    }
 
-.messages {
-  flex: 1;
-  padding: 10px;
-  overflow-y: auto;
-}
+    button:hover {
+      background: #357ABD;
+    }
 
-.msg {
-  margin: 10px;
-  padding: 10px;
-  border-radius: 10px;
-  max-width: 60%;
-}
+    .top-input {
+      display: flex;
+      border-bottom: 1px solid #ddd;
+    }
 
-.me { background: #3b82f6; margin-left: auto; }
-.other { background: #334155; }
-
-.typing {
-  font-size: 12px;
-  opacity: 0.7;
-}
-</style>
+    .top-input input {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      outline: none;
+    }
+  </style>
 </head>
-
 <body>
 
-<!-- AUTH -->
-<div id="auth" class="auth">
-  <h2>Connexion</h2>
-  <input id="email" placeholder="Email">
-  <input id="password" type="password" placeholder="Mot de passe">
-  <button onclick="login()">Se connecter</button>
-  <button onclick="register()">Créer compte</button>
-</div>
+<div class="chat-container">
+  <div class="header">💬 Messagerie</div>
 
-<!-- CHAT -->
-<div id="chat" class="chat hidden">
-  <div class="sidebar">
-    <div onclick="changeRoom('global')" class="room">🌍 Global</div>
-    <div onclick="changeRoom('gaming')" class="room">🎮 Gaming</div>
+  <div class="top-input">
+    <input id="name" placeholder="Ton pseudo">
   </div>
 
-  <div style="flex:1; display:flex; flex-direction:column;">
-    <div id="messages" class="messages"></div>
-    <div id="typing" class="typing"></div>
+  <div class="messages" id="messages"></div>
 
-    <input id="message" placeholder="Message..." oninput="typingEvent()">
-    <input type="file" id="file">
+  <div class="input-area">
+    <input id="message" placeholder="Ton message">
     <button onclick="sendMessage()">Envoyer</button>
   </div>
 </div>
 
 <!-- Firebase -->
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-storage.js"></script>
 
 <script>
-const config = {
-  apiKey: "846140280738",
-  authDomain: "messagerie.firebaseapp.com",
-  databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/",
-  projectId: "messagerie",
-  storageBucket: "messagerie.appspot.com"
-};
+  const firebaseConfig = {
+    apiKey: "846140280738",
+    authDomain: "messagerie.firebaseapp.com",
+    databaseURL: "https://messagerie-cd2ba-default-rtdb.europe-west1.firebasedatabase.app/",
+    projectId: "messagerie",
+  };
 
-firebase.initializeApp(config);
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
 
-const auth = firebase.auth();
-const db = firebase.database();
-const storage = firebase.storage();
+  function sendMessage() {
+    const name = document.getElementById("name").value;
+    const text = document.getElementById("message").value;
 
-let user;
-let room = "global";
+    if (!name || !text) return;
 
-// AUTH
-function register() {
-  auth.createUserWithEmailAndPassword(
-    email.value, password.value
-  );
-}
+    const now = new Date();
 
-function login() {
-  auth.signInWithEmailAndPassword(
-    email.value, password.value
-  );
-}
+    db.ref("messages").push({
+      name: name,
+      text: text,
+      date: now.toLocaleDateString(),
+      time: now.toLocaleTimeString()
+    });
 
-auth.onAuthStateChanged(u => {
-  if (u) {
-    user = u;
-    authDiv.style.display = "none";
-    chat.classList.remove("hidden");
-
-    // statut online
-    db.ref("status/" + user.uid).set(true);
-    db.ref("status/" + user.uid).onDisconnect().set(false);
-
-    loadMessages();
-  }
-});
-
-// ROOM
-function changeRoom(r) {
-  room = r;
-  messages.innerHTML = "";
-  loadMessages();
-}
-
-// SEND
-function sendMessage() {
-  const text = message.value;
-  const file = fileInput.files[0];
-
-  if (!text && !file) return;
-
-  if (file) {
-    const ref = storage.ref("images/" + Date.now());
-    ref.put(file).then(snapshot =>
-      snapshot.ref.getDownloadURL().then(url => {
-        pushMsg(text, url);
-      })
-    );
-  } else {
-    pushMsg(text, null);
+    document.getElementById("message").value = "";
   }
 
-  message.value = "";
-}
-
-function pushMsg(text, image) {
-  db.ref("rooms/" + room).push({
-    uid: user.uid,
-    text,
-    image,
-    time: new Date().toLocaleTimeString()
-  });
-}
-
-// LOAD
-function loadMessages() {
-  db.ref("rooms/" + room).on("child_added", snap => {
-    const msg = snap.val();
+  db.ref("messages").on("child_added", function(snapshot) {
+    const msg = snapshot.val();
 
     const div = document.createElement("div");
-    div.className = "msg " + (msg.uid === user.uid ? "me" : "other");
+    div.classList.add("message");
 
-    div.innerHTML = `
-      ${msg.text || ""}
-      ${msg.image ? `<img src="${msg.image}" width="150">` : ""}
-      <div>${msg.time}</div>
-    `;
+    const meta = document.createElement("div");
+    meta.classList.add("meta");
+    meta.textContent = `${msg.name} • ${msg.date} ${msg.time}`;
 
-    messages.appendChild(div);
-    messages.scrollTop = messages.scrollHeight;
+    const content = document.createElement("div");
+    content.textContent = msg.text;
+
+    div.appendChild(meta);
+    div.appendChild(content);
+
+    document.getElementById("messages").appendChild(div);
   });
-}
-
-// TYPING
-function typingEvent() {
-  db.ref("typing/" + room + "/" + user.uid).set(true);
-
-  setTimeout(() => {
-    db.ref("typing/" + room + "/" + user.uid).remove();
-  }, 1000);
-}
-
-db.ref("typing/" + room).on("value", snap => {
-  typing.innerHTML = snap.exists() ? "Quelqu’un écrit..." : "";
-});
 </script>
 
 </body>
