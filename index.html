@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Messagerie</title>
+</head>
+<body>
+
+<h2>💬 Chat entre amis</h2>
+
+<input id="name" placeholder="Ton pseudo"><br><br>
+<input id="message" placeholder="Ton message">
+<button onclick="sendMessage()">Envoyer</button>
+
+<ul id="messages"></ul>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "TON_API_KEY",
+    authDomain: "TON_PROJET.firebaseapp.com",
+    databaseURL: "https://TON_PROJET.firebaseio.com",
+    projectId: "TON_PROJET",
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.database();
+
+  function sendMessage() {
+    const name = document.getElementById("name").value;
+    const text = document.getElementById("message").value;
+
+    db.ref("messages").push({
+      name: name,
+      text: text
+    });
+
+    document.getElementById("message").value = "";
+  }
+
+  db.ref("messages").on("child_added", function(snapshot) {
+    const msg = snapshot.val();
+    const li = document.createElement("li");
+    li.textContent = msg.name + " : " + msg.text;
+    document.getElementById("messages").appendChild(li);
+  });
+</script>
+
+</body>
+</html>
