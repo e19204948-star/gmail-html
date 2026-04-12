@@ -52,6 +52,10 @@
         <input id="contactEmail" class="input" placeholder="Email (optional)" />
         <button id="addContactBtn">Add</button>
       </div>
+      <div class="form-row">
+        <button id="importEsimBtn" class="secondary">Import eSIM</button>
+        <input id="importEsimFile" type="file" accept="application/json" style="display:none" />
+      </div>
       <ul id="contactsList" class="list"></ul>
     </section>
 
@@ -60,6 +64,7 @@
       <div id="simsForContactHeader" class="small">Select a contact to manage SIMs</div>
       <div id="simsControls" style="display:none" class="form-row">
         <input id="simLabel" class="input" placeholder="SIM label (e.g., Work)" />
+        <input id="simNumber" class="input" placeholder="ICCID (optional)" />
         <button id="addSimBtn">Add SIM</button>
       </div>
       <div id="simsList"></div>
@@ -70,6 +75,7 @@
       <div class="small">Select an active SIM above and a recipient SIM below to chat.</div>
 
       <div class="form-row">
+        <select id="recipientContactSelect" class="input"></select>
         <select id="recipientSimSelect" class="input"></select>
         <input id="messageInput" class="input" placeholder="Type a message..." />
         <button id="sendBtn">Send</button>
@@ -91,128 +97,27 @@
   <script>
   (()=>{
     const KEY = 'virtual_sim_comms_v1';
-    let state = {contacts:[], messages:[], selectedContactId:null, selectedSimId:null, activeSimId:null, recipientSimId:null};
+    let state = {contacts:[], messages:[], selectedContactId:null, selectedSimId:null, activeSimId:null, recipientContactId:null, recipientSimId:null};
     const uid = (p='id')=>p+'_'+Math.random().toString(36).slice(2,9);
     function save(){ localStorage.setItem(KEY, JSON.stringify({contacts:state.contacts, messages:state.messages})); }
     function load(){ const raw = localStorage.getItem(KEY); if(!raw) return; try{ const parsed = JSON.parse(raw); state.contacts = parsed.contacts||[]; state.messages = parsed.messages||[]; }catch(e){console.error(e)} }
     function getAllSims(){ let list=[]; state.contacts.forEach(c=> (c.sims||[]).forEach(s=>list.push({contactId:c.id, contactName:c.name, sim:s}))); return list; }
 
-    function renderContacts(){ const el=document.getElementById('contactsList'); el.innerHTML=''; state.contacts.forEach(c=>{ const li=document.createElement('li'); li.className='contact-item'; li.dataset.id=c.id; li.innerHTML='<div><strong>'+escapeHtml(c.name)+'</strong><div class="small">'+(c.email||'')+'</div></div><div style="display:flex;gap:8px;align-items:center"><span class="badge">'+((c.sims||[]).length)+' SIM</span><button data-action="manage" class="secondary">Manage</button></div>'; el.appendChild(li); li.addEventListener('click',(e)=>selectContact(c.id)); }); }
-... (39lignes restantes)
+    // --- End-to-end encryption helpers (Web Crypto API using ECDH + HKDF -> AES-GCM) ---
+    function arrayBufferToBase64(buf){ let binary=''; const bytes=new Uint8Array(buf); const chunk=0x8000; for(let i=0;i<bytes.length;i+=chunk){ binary += String.fromCharCode.apply(null, bytes.subarray(i, i+chunk)); } return btoa(binary); }
+    function base64ToArrayBuffer(b64){ const bin=atob(b64); const len=bin.length; const bytes=new Uint8Array(len); for(let i=0;i<len;i++) bytes[i]=bin.charCodeAt(i); return bytes.buffer; }
 
-message.txt
-14 Ko
-﻿
-Laisse la partir sa te fais du mal je sais mais t'ira mieux
-TTV_Maxpro384u
-leanne_darren_salome
-M'oublie et je oublie pas
- 
- 
- 
- 
-les monstres qui ton blaisser, je les tues
-Image
-Image
-Image
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Contact List — Virtual SIM Chat</title>
-  <style>
-    :root{--bg:#f4f6f8;--card:#fff;--accent:#2563eb;--muted:#6b7280}
-    *{box-sizing:border-box}
-    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#111}
-    header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(90deg,#fff,#f7fafc);border-bottom:1px solid #e6e9ee}
-    h1{font-size:18px;margin:0}
-    .top-controls{display:flex;gap:8px;align-items:center}
-    button{background:var(--accent);color:#fff;border:0;padding:8px 10px;border-radius:6px;cursor:pointer}
-    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,.15)}
-    .container{display:grid;grid-template-columns:280px 320px 1fr;gap:14px;padding:14px;height:calc(100vh - 66px)}
-    .panel{background:var(--card);border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(16,24,40,0.04);overflow:auto}
-    .form-row{display:flex;gap:8px;margin-bottom:8px}
-    .input{padding:8px;border:1px solid #e6e9ee;border-radius:6px;width:100%}
-    .list{margin:0;padding:0;list-style:none}
-    .contact-item{padding:8px;border-radius:6px;display:flex;justify-content:space-between;align-items:center;gap:8px;cursor:pointer}
-    .contact-item:hover{background:#f8fafc}
-    .badge{background:#eef2ff;color:#3730a3;padding:3px 8px;border-radius:999px;font-size:12px}
-    .sim-card{padding:10px;border-radius:8px;border:1px dashed #e6eef8;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center}
-    .chat-log{height:calc(100% - 120px);overflow:auto;padding:8px;border-radius:6px;background:#f8fafc}
-    .msg{padding:8px 12px;margin-bottom:8px;border-radius:12px;max-width:70%;display:inline-block}
-    .msg.out{background:#e0f2fe;align-self:flex-end;margin-left:auto}
-    .msg.in{background:#f1f5f9}
-    .controls{display:flex;gap:8px;margin-top:8px;align-items:center}
-    .small{font-size:12px;color:var(--muted)}
-    .footer{display:flex;gap:8px;align-items:center;justify-content:space-between;padding-top:8px;border-top:1px solid #f1f5f9;margin-top:8px}
-  </style>
-</head>
-<body>
-  <header>
-    <h1>Contact List — Virtual SIM Chat</h1>
-    <div class="top-controls">
-      <a href="esim.html" class="secondary" style="padding:8px 10px;display:inline-flex;align-items:center;margin-right:6px">eSIMs</a>
-      <a href="list.html" class="secondary" style="padding:8px 10px;display:inline-flex;align-items:center;margin-right:6px">List</a>
-      <select id="activeSimSelect" class="input"></select>
-      <button id="exportBtn" class="secondary">Export JSON</button>
-      <button id="importBtn" class="secondary">Import</button>
-      <button id="clearBtn" class="secondary">Clear All</button>
-    </div>
-  </header>
+    async function generateEcdhKeypair(){ const kp = await crypto.subtle.generateKey({name:'ECDH', namedCurve:'P-256'}, true, ['deriveKey','deriveBits']); const pub = await crypto.subtle.exportKey('jwk', kp.publicKey); const priv = await crypto.subtle.exportKey('jwk', kp.privateKey); return {pub, priv}; }
+    async function importEcdhPublicJwk(jwk){ return crypto.subtle.importKey('jwk', jwk, {name:'ECDH', namedCurve:'P-256'}, false, []); }
+    async function importEcdhPrivateJwk(jwk){ return crypto.subtle.importKey('jwk', jwk, {name:'ECDH', namedCurve:'P-256'}, false, ['deriveBits','deriveKey']); }
 
-  <main class="container">
-    <section class="panel" id="contactsPanel">
-      <h3>Contacts</h3>
-      <div class="form-row">
-        <input id="contactName" class="input" placeholder="Name" />
-        <input id="contactEmail" class="input" placeholder="Email (optional)" />
-        <button id="addContactBtn">Add</button>
-      </div>
-      <ul id="contactsList" class="list"></ul>
-    </section>
+    async function deriveSharedKey(privKeyCrypto, otherPubCrypto, saltArrayBuffer){ const shared = await crypto.subtle.deriveBits({name:'ECDH', public: otherPubCrypto}, privKeyCrypto, 256); const baseKey = await crypto.subtle.importKey('raw', shared, {name:'HKDF'}, false, ['deriveKey']); const aesKey = await crypto.subtle.deriveKey({name:'HKDF', hash:'SHA-256', salt: saltArrayBuffer, info: new Uint8Array([])}, baseKey, {name:'AES-GCM', length:256}, false, ['encrypt','decrypt']); return aesKey; }
 
-    <section class="panel" id="simsPanel">
-      <h3>SIMs</h3>
-      <div id="simsForContactHeader" class="small">Select a contact to manage SIMs</div>
-      <div id="simsControls" style="display:none" class="form-row">
-        <input id="simLabel" class="input" placeholder="SIM label (e.g., Work)" />
-        <button id="addSimBtn">Add SIM</button>
-      </div>
-      <div id="simsList"></div>
-    </section>
+    async function encryptForPair(plaintext, fromSim, toSim){ if(!fromSim || !toSim) throw new Error('Missing sims'); if(!fromSim.privKey || !toSim.pubKey) throw new Error('Missing keys'); const priv = await importEcdhPrivateJwk(fromSim.privKey); const pub = await importEcdhPublicJwk(toSim.pubKey); const salt = crypto.getRandomValues(new Uint8Array(16)); const aesKey = await deriveSharedKey(priv, pub, salt.buffer); const iv = crypto.getRandomValues(new Uint8Array(12)); const data = new TextEncoder().encode(plaintext); const ct = await crypto.subtle.encrypt({name:'AES-GCM', iv}, aesKey, data); return {ciphertext: arrayBufferToBase64(ct), iv: arrayBufferToBase64(iv.buffer), salt: arrayBufferToBase64(salt.buffer)}; }
 
-    <section class="panel" id="chatPanel">
-      <h3>Chat</h3>
-      <div class="small">Select an active SIM above and a recipient SIM below to chat.</div>
+    async function decryptForSim(message, simId){ if(!message || !message.enc) throw new Error('Not encrypted'); const own = findSimById(simId); if(!own || !own.sim || !own.sim.privKey) throw new Error('No private key for this SIM'); const otherId = message.from === simId ? message.to : message.from; const other = findSimById(otherId); if(!other || !other.sim || !other.sim.pubKey) throw new Error('Other SIM public key missing'); const priv = await importEcdhPrivateJwk(own.sim.privKey); const pub = await importEcdhPublicJwk(other.sim.pubKey); const salt = base64ToArrayBuffer(message.salt); const ivBuf = base64ToArrayBuffer(message.iv); const aesKey = await deriveSharedKey(priv, pub, salt); const ctBuf = base64ToArrayBuffer(message.ciphertext); const plainBuf = await crypto.subtle.decrypt({name:'AES-GCM', iv: new Uint8Array(ivBuf)}, aesKey, ctBuf); return new TextDecoder().decode(plainBuf); }
 
-      <div class="form-row">
-        <select id="recipientSimSelect" class="input"></select>
-        <input id="messageInput" class="input" placeholder="Type a message..." />
-        <button id="sendBtn">Send</button>
-      </div>
-
-      <div id="chatLog" class="chat-log"></div>
-
-      <div class="footer">
-        <div class="small" id="statusInfo">No SIM selected</div>
-        <div>
-          <button id="downloadDump" class="secondary">Download Dump</button>
-        </div>
-      </div>
-    </section>
-  </main>
-
-  <input id="importFile" type="file" accept="application/json" style="display:none" />
-
-  <script>
-  (()=>{
-    const KEY = 'virtual_sim_comms_v1';
-    let state = {contacts:[], messages:[], selectedContactId:null, selectedSimId:null, activeSimId:null, recipientSimId:null};
-    const uid = (p='id')=>p+'_'+Math.random().toString(36).slice(2,9);
-    function save(){ localStorage.setItem(KEY, JSON.stringify({contacts:state.contacts, messages:state.messages})); }
-    function load(){ const raw = localStorage.getItem(KEY); if(!raw) return; try{ const parsed = JSON.parse(raw); state.contacts = parsed.contacts||[]; state.messages = parsed.messages||[]; }catch(e){console.error(e)} }
-    function getAllSims(){ let list=[]; state.contacts.forEach(c=> (c.sims||[]).forEach(s=>list.push({contactId:c.id, contactName:c.name, sim:s}))); return list; }
+    // --- end E2EE helpers ---
 
     function renderContacts(){ const el=document.getElementById('contactsList'); el.innerHTML=''; state.contacts.forEach(c=>{ const li=document.createElement('li'); li.className='contact-item'; li.dataset.id=c.id; li.innerHTML='<div><strong>'+escapeHtml(c.name)+'</strong><div class="small">'+(c.email||'')+'</div></div><div style="display:flex;gap:8px;align-items:center"><span class="badge">'+((c.sims||[]).length)+' SIM</span><button data-action="manage" class="secondary">Manage</button></div>'; el.appendChild(li); li.addEventListener('click',(e)=>selectContact(c.id)); }); }
 
@@ -220,20 +125,58 @@ Image
 
     function renderActiveSimSelect(){ const sel=document.getElementById('activeSimSelect'); sel.innerHTML='<option value="">Select active SIM (computer)</option>'; getAllSims().forEach(entry=>{ const opt=document.createElement('option'); opt.value=entry.sim.id; opt.textContent=entry.contactName+' — '+entry.sim.label; sel.appendChild(opt); }); sel.value = state.activeSimId || ''; sel.onchange = (e)=>{ state.activeSimId = e.target.value || null; save(); renderChat(); renderStatus(); } }
 
-    function renderRecipientSelect(){ const sel=document.getElementById('recipientSimSelect'); sel.innerHTML=''; const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='Choose recipient SIM'; sel.appendChild(placeholder); getAllSims().forEach(entry=>{ const opt=document.createElement('option'); opt.value=entry.sim.id; opt.textContent=entry.contactName+' — '+entry.sim.label; sel.appendChild(opt); }); sel.value = state.recipientSimId || ''; sel.onchange = (e)=>{ state.recipientSimId = e.target.value || null; renderChat(); } }
+    function renderRecipientContactSelect(){ const sel=document.getElementById('recipientContactSelect'); if(!sel) return; sel.innerHTML=''; const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='Choose recipient contact'; sel.appendChild(placeholder); state.contacts.forEach(c=>{ const opt=document.createElement('option'); opt.value=c.id; opt.textContent=c.name; sel.appendChild(opt); }); sel.value = state.recipientContactId || ''; sel.onchange = (e)=>{ state.recipientContactId = e.target.value || null; if(state.recipientContactId){ const contact = state.contacts.find(x=>x.id===state.recipientContactId); if(contact && (contact.sims||[]).length) state.recipientSimId = contact.sims[0].id; else state.recipientSimId = null; } renderRecipientSelect(); renderChat(); } }
 
-    function renderChat(){ const log=document.getElementById('chatLog'); log.innerHTML=''; const from=state.activeSimId; const to=state.recipientSimId; if(!from || !to){ log.innerHTML = '<div class="small">Select both an active SIM and a recipient SIM to view messages.</div>'; renderStatus(); return; } const msgs = state.messages.filter(m=> (m.from===from && m.to===to) || (m.from===to && m.to===from)).sort((a,b)=>a.ts-b.ts); msgs.forEach(m=>{ const d=document.createElement('div'); d.className='msg '+(m.from===from ? 'out':'in'); const time = new Date(m.ts).toLocaleString(); d.innerHTML = '<div>'+escapeHtml(m.text)+'</div><div class="small">'+time+'</div>'; log.appendChild(d); }); log.scrollTop = log.scrollHeight; renderStatus(); }
+    function renderRecipientSelect(){ const sel=document.getElementById('recipientSimSelect'); sel.innerHTML=''; const placeholder=document.createElement('option'); placeholder.value=''; placeholder.textContent='Choose recipient SIM'; sel.appendChild(placeholder); let sims = [];
+      if(state.recipientContactId){ const contact = state.contacts.find(c=>c.id===state.recipientContactId); if(contact) sims = (contact.sims||[]).map(s=>({contactId:contact.id, contactName:contact.name, sim:s})); }
+      else { sims = getAllSims(); }
+      sims.forEach(entry=>{ const opt=document.createElement('option'); opt.value=entry.sim.id; opt.textContent=entry.contactName+' — '+entry.sim.label; sel.appendChild(opt); }); sel.value = state.recipientSimId || ''; sel.onchange = (e)=>{ state.recipientSimId = e.target.value || null; renderChat(); } }
+
+    function renderChat(){ const log=document.getElementById('chatLog'); log.innerHTML=''; const from=state.activeSimId; let to=state.recipientSimId; if(!to && state.recipientContactId){ const contact = state.contacts.find(c=>c.id===state.recipientContactId); if(contact && (contact.sims||[]).length) to = contact.sims[0].id; }
+      if(!from || !to){ log.innerHTML = '<div class="small">Select both an active SIM and a recipient SIM to view messages.</div>'; renderStatus(); return; }
+      const msgs = state.messages.filter(m=> (m.from===from && m.to===to) || (m.from===to && m.to===from)).sort((a,b)=>a.ts-b.ts);
+      msgs.forEach(m=>{
+        const d=document.createElement('div'); d.className='msg '+(m.from===from ? 'out':'in'); const time = new Date(m.ts).toLocaleString();
+        if(m.enc){ d.innerHTML = '<div class="small">Encrypted message — attempting decryption…</div><div class="small">'+time+'</div>'; const canAttempt = state.activeSimId && (m.from===state.activeSimId || m.to===state.activeSimId); if(canAttempt){ decryptForSim(m, state.activeSimId).then(plaintext=>{ try{ const container = d.querySelector('div'); if(container) container.innerHTML = escapeHtml(plaintext); }catch(e){ /* ignore */ } }).catch(()=>{ const container = d.querySelector('div'); if(container) container.innerHTML = '<em>Encrypted — cannot decrypt</em>'; }); } }
+        else { d.innerHTML = '<div>'+escapeHtml(m.text)+'</div><div class="small">'+time+'</div>'; }
+        log.appendChild(d);
+      });
+      log.scrollTop = log.scrollHeight; renderStatus(); }
 
     function renderStatus(){ const s = document.getElementById('statusInfo'); if(!state.activeSimId){ s.textContent='No active SIM'; return; } const active = findSimById(state.activeSimId); const recip = state.recipientSimId ? findSimById(state.recipientSimId) : null; s.textContent = 'Using: ' + (active ? active.contactName+' — '+active.sim.label : 'Unknown') + (recip ? '  |  Chatting with: '+recip.contactName+' — '+recip.sim.label : ''); }
 
     function findSimById(id){ for(const c of state.contacts){ for(const s of (c.sims||[])){ if(s.id===id) return {contact:c, sim:s, contactName:c.name}; } } return null; }
 
     function addContact(name,email){ const id=uid('c'); state.contacts.push({id,name,email,sims:[]}); save(); renderAll(); selectContact(id); }
-    function addSimToContact(contactId,label){ const contact = state.contacts.find(c=>c.id===contactId); if(!contact) return; const sId = uid('s'); const number = Math.floor(100000000000 + Math.random()*900000000000).toString(); contact.sims.push({id:sId,label:label||'SIM',number}); save(); renderAll(); state.recipientSimId = sId; renderChat(); }
-    function sendMessage(text,from,to){ if(!text||!from||!to) return; const msg={id:uid('m'),from,to,text,ts:Date.now()}; state.messages.push(msg); save(); renderChat(); }
+    async function addSimToContact(contactId,label,number){ const contact = state.contacts.find(c=>c.id===contactId); if(!contact) return; const sId = uid('s'); const simNumber = number && String(number).trim() ? String(number).trim() : (Math.floor(100000000000 + Math.random()*900000000000).toString()); // generate ECDH keypair for this SIM
+      try{ const keys = await generateEcdhKeypair(); contact.sims = contact.sims || []; contact.sims.push({id:sId,label:label||'SIM',number:simNumber, pubKey: keys.pub, privKey: keys.priv}); save(); renderAll(); state.recipientSimId = sId; renderChat(); }catch(err){ // fallback to non-keyed SIM
+        contact.sims = contact.sims || []; contact.sims.push({id:sId,label:label||'SIM',number:simNumber}); save(); renderAll(); state.recipientSimId = sId; renderChat(); }
+    }
+
+    async function sendMessage(text,from,to){ if(!text||!from||!to) return; const fromEntry = findSimById(from); const toEntry = findSimById(to); if(!fromEntry || !toEntry){ const msg={id:uid('m'),from,to,text,ts:Date.now()}; state.messages.push(msg); save(); renderChat(); return; }
+      const fromSim = fromEntry.sim; const toSim = toEntry.sim;
+      // if both sides have keys, encrypt
+      if(fromSim && toSim && fromSim.privKey && toSim.pubKey){ try{ const enc = await encryptForPair(text, fromSim, toSim); const msg = {id:uid('m'),from,to,enc:true,ciphertext:enc.ciphertext,iv:enc.iv,salt:enc.salt,ts:Date.now()}; state.messages.push(msg); save(); renderChat(); return; }catch(err){ /* fallback to plaintext */ console.error('Encrypt failed',err); }
+      }
+      const msg={id:uid('m'),from,to,text,ts:Date.now()}; state.messages.push(msg); save(); renderChat(); }
     function selectContact(id){ state.selectedContactId = id; renderSims(); renderContacts(); }
     function exportJSON(){ const blob = new Blob([JSON.stringify({contacts:state.contacts,messages:state.messages},null,2)], {type:'application/json'}); const url = URL.createObjectURL(blob); const a=document.createElement('a'); a.href=url; a.download='virtual_sim_export.json'; a.click(); URL.revokeObjectURL(url); }
     function importJSONFile(file){ const r=new FileReader(); r.onload=(e)=>{ try{ const parsed=JSON.parse(e.target.result); if(Array.isArray(parsed.contacts)) state.contacts=parsed.contacts; if(Array.isArray(parsed.messages)) state.messages=parsed.messages; save(); renderAll(); }catch(err){ alert('Invalid JSON'); } }; r.readAsText(file); }
+
+    function importEsimFile(file){ const r=new FileReader(); r.onload=async (e)=>{ try{ const parsed = JSON.parse(e.target.result); let profiles = [];
+          if(Array.isArray(parsed)) profiles = parsed;
+          else if(parsed && (parsed.iccid || parsed.eid || parsed.activationCode || parsed.profileName || parsed.operator)) profiles = [parsed];
+          else if(parsed && Array.isArray(parsed.profiles)) profiles = parsed.profiles;
+          if(!profiles.length){ alert('No eSIM profiles found in file'); return; }
+          const attachToSelected = !!state.selectedContactId && confirm('Add imported eSIM(s) to selected contact? OK to attach, Cancel to create new contacts');
+          for(const p of profiles){ const label = p.profileName || p.operator || 'eSIM'; const number = p.iccid || p.activationCode || p.eid || Math.floor(100000000000 + Math.random()*900000000000).toString(); if(attachToSelected){ const contact = state.contacts.find(c=>c.id===state.selectedContactId); if(contact){ await addSimToContact(contact.id, label, number); } } else { const cid = uid('c'); state.contacts.push({id: cid, name: p.profileName || p.operator || ('eSIM '+number.slice(-6)), email:'', sims:[]}); // create SIM with keys
+                await addSimToContact(cid, label, number);
+            } }
+          save(); renderAll();
+        }catch(err){ console.error(err); alert('Invalid JSON'); }
+      };
+      r.readAsText(file);
+    }
     function clearAll(){ if(!confirm('Clear all contacts, SIMs and messages?')) return; state.contacts=[]; state.messages=[]; state.activeSimId=null; state.recipientSimId=null; save(); renderAll(); }
     function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g,(m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])); }
 
@@ -242,14 +185,27 @@ Image
     document.addEventListener('DOMContentLoaded', ()=>{
       load(); renderAll();
       document.getElementById('addContactBtn').addEventListener('click', ()=>{ const name=document.getElementById('contactName').value.trim(); const email=document.getElementById('contactEmail').value.trim(); if(!name) return alert('Provide a name'); addContact(name,email); document.getElementById('contactName').value=''; document.getElementById('contactEmail').value=''; });
-      document.getElementById('addSimBtn').addEventListener('click', ()=>{ const label=document.getElementById('simLabel').value.trim(); if(!state.selectedContactId) return alert('Select contact'); addSimToContact(state.selectedContactId,label); document.getElementById('simLabel').value=''; });
-      document.getElementById('sendBtn').addEventListener('click', ()=>{ const text=document.getElementById('messageInput').value.trim(); if(!text) return; if(!state.activeSimId) return alert('Select active SIM'); if(!state.recipientSimId) return alert('Select recipient SIM'); sendMessage(text,state.activeSimId,state.recipientSimId); document.getElementById('messageInput').value=''; });
+      document.getElementById('addSimBtn').addEventListener('click', async ()=>{ const label=document.getElementById('simLabel').value.trim(); const number=document.getElementById('simNumber').value.trim(); if(!state.selectedContactId) return alert('Select contact'); try{ await addSimToContact(state.selectedContactId,label,number); }catch(err){ console.error(err); alert('Failed to add SIM'); } document.getElementById('simLabel').value=''; document.getElementById('simNumber').value=''; });
+      document.getElementById('sendBtn').addEventListener('click', async ()=>{ const text=document.getElementById('messageInput').value.trim(); if(!text) return; if(!state.activeSimId) return alert('Select active SIM'); let to = state.recipientSimId; if(!to && state.recipientContactId){ const contact = state.contacts.find(c=>c.id===state.recipientContactId); if(!contact || !(contact.sims||[]).length) return alert('Selected contact has no SIM'); to = contact.sims[0].id; } if(!to) return alert('Select recipient SIM or contact'); try{ await sendMessage(text,state.activeSimId,to); }catch(err){ console.error(err); alert('Send failed'); } document.getElementById('messageInput').value=''; });
       document.getElementById('exportBtn').addEventListener('click', exportJSON); document.getElementById('downloadDump').addEventListener('click', exportJSON); document.getElementById('clearBtn').addEventListener('click', clearAll);
       document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click()); document.getElementById('importFile').addEventListener('change',(e)=>{ const f=e.target.files[0]; if(f) importJSONFile(f); e.target.value=''; });
+      // wire eSIM import button
+      const importEsimBtn = document.getElementById('importEsimBtn'); if(importEsimBtn){ importEsimBtn.addEventListener('click', ()=>document.getElementById('importEsimFile').click()); }
+      const importEsimFileEl = document.getElementById('importEsimFile'); if(importEsimFileEl){ importEsimFileEl.addEventListener('change',(e)=>{ const f=e.target.files[0]; if(f) importEsimFile(f); e.target.value=''; }); }
       if(state.contacts.length && !state.selectedContactId) state.selectedContactId = state.contacts[0].id;
       if(!state.activeSimId){ const sims = getAllSims(); if(sims.length) state.activeSimId = sims[0].sim.id; }
       renderAll();
     });
+
+    // Expose a small global API so external scripts or the console can add contacts:
+    // Usage: window.VSIM.addContact(name, email, sims)
+    // where `sims` is an optional array of {label, number}
+    window.VSIM = window.VSIM || {};
+    window.VSIM.addContact = async function(name, email, sims){
+      if(!name) return; // ignore empty names
+      addContact(name, email);
+      if(Array.isArray(sims) && state.selectedContactId){ for(const s of sims){ try{ await addSimToContact(state.selectedContactId, s.label, s.number); }catch(e){ console.error('Failed adding sim', e); } } }
+    };
   })();
   </script>
 </body>
