@@ -61,6 +61,7 @@
         <button id="importBtn" class="secondary">Import JSON</button>
         <input id="importFile" type="file" accept="application/json" style="display:none" />
       </div>
+      <div id="dropZone" class="small" style="margin-top:10px;border:1px dashed #e6eef8;padding:12px;border-radius:6px;text-align:center;cursor:pointer">Drag & drop eSIM JSON files here (or click to browse)</div>
 
       <hr />
 
@@ -114,6 +115,21 @@
     function downloadQR(){ const qr = document.getElementById('qr'); if(!qr) return alert('No QR'); const img = qr.querySelector('img'); if(img){ const a=document.createElement('a'); a.href=img.src; a.download=(currentProfile?.name||'esim')+'-qr.png'; a.click(); return; } const canvas = qr.querySelector('canvas'); if(canvas){ const a=document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download=(currentProfile?.name||'esim')+'-qr.png'; a.click(); return; } alert('QR not available (library may be blocked).'); }
     function copyPayload(){ if(!currentPayload) return alert('No payload to copy'); navigator.clipboard?.writeText(currentPayload).then(()=>alert('Payload copied to clipboard')).catch(()=>alert('Copy failed')); }
 
+    // Import helper used by both file picker and drag-drop
+    function importProfilesFromParsed(parsed){
+      let newProfiles = [];
+      if(Array.isArray(parsed)) newProfiles = parsed;
+      else if(parsed && parsed.id) newProfiles = [parsed];
+      else if(parsed && Array.isArray(parsed.profiles)) newProfiles = parsed.profiles;
+      else return false;
+      newProfiles.forEach(p=>{
+        if(!profiles.find(x=>x.id===p.id)) profiles.push(p);
+      });
+      saveProfiles(profiles);
+      renderProfiles();
+      return true;
+    }
+
     document.addEventListener('DOMContentLoaded', function(){
       renderProfiles();
       document.getElementById('generateBtn').addEventListener('click', function(){
@@ -132,7 +148,17 @@
       document.getElementById('downloadQR').addEventListener('click', downloadQR);
 
       document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
-      document.getElementById('importFile').addEventListener('change', function(e){ const f = e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=function(ev){ try{ const parsed = JSON.parse(ev.target.result); if(Array.isArray(parsed)){ profiles = parsed; } else if(parsed && parsed.id){ profiles.push(parsed); } saveProfiles(profiles); renderProfiles(); }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); e.target.value=''; });
+      document.getElementById('importFile').addEventListener('change', function(e){ const f = e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=function(ev){ try{ const parsed = JSON.parse(ev.target.result); if(!importProfilesFromParsed(parsed)){ alert('No profiles found in file'); } }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); e.target.value=''; });
+
+      // drag & drop handlers for the drop zone
+      const dropZone = document.getElementById('dropZone');
+      if(dropZone){
+        dropZone.addEventListener('dragover', function(e){ e.preventDefault(); dropZone.style.background='#eef6ff'; dropZone.style.borderColor='#cfe3ff'; });
+        dropZone.addEventListener('dragleave', function(e){ e.preventDefault(); dropZone.style.background=''; dropZone.style.borderColor=''; });
+        dropZone.addEventListener('drop', function(e){ e.preventDefault(); dropZone.style.background=''; dropZone.style.borderColor=''; const files = e.dataTransfer.files; if(!files || !files.length) return; Array.from(files).forEach(f=>{ if(!f.name.endsWith('.json') && !f.type.includes('json')) return; const r=new FileReader(); r.onload=function(ev){ try{ const parsed = JSON.parse(ev.target.result); if(!importProfilesFromParsed(parsed)) alert('No profiles found in file'); }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); }); });
+        // clicking the drop zone opens the file picker
+        dropZone.addEventListener('click', function(){ document.getElementById('importFile').click(); });
+      }
     });
   })();
   </script>
