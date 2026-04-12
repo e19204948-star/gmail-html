@@ -35,6 +35,8 @@
     <section class="panel">
       <div class="controls">
         <button id="refreshBtn">Refresh</button>
+        <button id="importBtn" class="secondary">Import JSON</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
         <button id="exportContacts" class="secondary">Export contacts JSON</button>
         <button id="exportEsims" class="secondary">Export eSIMs JSON</button>
         <button id="exportAll" class="secondary">Export all</button>
@@ -66,6 +68,10 @@
     function loadMessages(){ try{ const raw = localStorage.getItem(KEY); if(!raw) return []; const parsed = JSON.parse(raw); return parsed.messages || []; }catch(e){return []; } }
     function loadEsims(){ try{ const raw = localStorage.getItem(ESIM_KEY); if(!raw) return []; return JSON.parse(raw) || []; }catch(e){console.error(e); return []; } }
 
+    function saveContactsList(list){ const msgs = loadMessages(); localStorage.setItem(KEY, JSON.stringify({contacts:list, messages: msgs})); }
+    function saveMessagesList(list){ const contacts = loadContacts(); localStorage.setItem(KEY, JSON.stringify({contacts:contacts, messages: list})); }
+    function saveEsimsList(list){ localStorage.setItem(ESIM_KEY, JSON.stringify(list)); }
+
     function escapeHtml(s){ if(!s) return ''; return String(s).replace(/[&<>"']/g, (m)=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])); }
 
     function renderContacts(){ const container = document.getElementById('contactsContainer'); const contacts = loadContacts(); if(!contacts.length){ container.innerHTML = '<div class="small">No contacts found</div>'; return; } const rows = contacts.map(c=>{ const sims = (c.sims||[]).map(s=>('<div class="small">'+escapeHtml(s.label||'SIM')+' — '+escapeHtml(s.number||'')+'</div>')).join(''); return '<div style="padding:8px;border-radius:6px;border:1px solid #f1f5f9;margin-bottom:8px"><strong>'+escapeHtml(c.name)+'</strong><div class="small">'+escapeHtml(c.email||'')+'</div><div style="margin-top:6px">'+sims+'</div></div>'; }).join(''); container.innerHTML = rows; }
@@ -79,6 +85,35 @@
     document.addEventListener('DOMContentLoaded', ()=>{
       renderContacts(); renderEsims(); renderMessagesSummary();
       document.getElementById('refreshBtn').addEventListener('click', ()=>{ renderContacts(); renderEsims(); renderMessagesSummary(); });
+      document.getElementById('importBtn').addEventListener('click', ()=>{ document.getElementById('importFile').click(); });
+      document.getElementById('importFile').addEventListener('change', function(e){ const f = e.target.files[0]; if(!f) return; const r = new FileReader(); r.onload = function(ev){ try{ const parsed = JSON.parse(ev.target.result);
+            // handle all-data object
+            if(parsed && parsed.contacts && Array.isArray(parsed.contacts)){
+              const existing = loadContacts(); parsed.contacts.forEach(c=>{ if(!existing.find(ex=>ex.id===c.id)) existing.push(c); }); saveContactsList(existing);
+            }
+            if(parsed && parsed.messages && Array.isArray(parsed.messages)){
+              const existing = loadMessages(); parsed.messages.forEach(m=>{ if(!existing.find(ex=>ex.id===m.id)) existing.push(m); }); saveMessagesList(existing);
+            }
+            if(parsed && (parsed.esims || parsed.esim_profiles || parsed.profiles) && Array.isArray(parsed.esims || parsed.esim_profiles || parsed.profiles)){
+              const arr = parsed.esims || parsed.esim_profiles || parsed.profiles;
+              const existing = loadEsims(); arr.forEach(p=>{ if(!existing.find(ex=>ex.id===p.id)) existing.push(p); }); saveEsimsList(existing);
+            }
+            // handle arrays: try to detect type
+            if(Array.isArray(parsed)){
+              if(parsed.length && (parsed[0].iccid || parsed[0].eid)){
+                const existing = loadEsims(); parsed.forEach(p=>{ if(!existing.find(ex=>ex.id===p.id)) existing.push(p); }); saveEsimsList(existing);
+              } else if(parsed.length && parsed[0].name){
+                const existing = loadContacts(); parsed.forEach(c=>{ if(!existing.find(ex=>ex.id===c.id)) existing.push(c); }); saveContactsList(existing);
+              } else if(parsed.length && parsed[0].from && parsed[0].to){
+                const existing = loadMessages(); parsed.forEach(m=>{ if(!existing.find(ex=>ex.id===m.id)) existing.push(m); }); saveMessagesList(existing);
+              }
+            }
+            // handle single objects
+            if(parsed && parsed.iccid && parsed.id){ const existing = loadEsims(); if(!existing.find(ex=>ex.id===parsed.id)) existing.push(parsed); saveEsimsList(existing); }
+            else if(parsed && parsed.name){ const existing = loadContacts(); if(!existing.find(ex=>ex.id===parsed.id)) existing.push(parsed); saveContactsList(existing); }
+
+            renderContacts(); renderEsims(); renderMessagesSummary(); alert('Import complete');
+          }catch(err){ alert('Invalid JSON'); } }; r.readAsText(f); e.target.value=''; });
       document.getElementById('exportContacts').addEventListener('click', ()=>{ const contacts = loadContacts(); exportJson('contacts.json', contacts); });
       document.getElementById('exportEsims').addEventListener('click', ()=>{ const esims = loadEsims(); exportJson('esim_profiles.json', esims); });
       document.getElementById('exportAll').addEventListener('click', ()=>{ const out = {contacts: loadContacts(), esims: loadEsims(), messages: loadMessages()}; exportJson('all_data.json', out); });
