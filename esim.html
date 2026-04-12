@@ -1,0 +1,140 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>eSIM Generator</title>
+  <style>
+    :root{--bg:#f4f6f8;--card:#fff;--accent:#2563eb;--muted:#6b7280}
+    *{box-sizing:border-box}
+    body{margin:0;font-family:Inter,system-ui,Segoe UI,Roboto,Helvetica,Arial;background:var(--bg);color:#111}
+    header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;background:linear-gradient(90deg,#fff,#f7fafc);border-bottom:1px solid #e6e9ee}
+    h1{font-size:18px;margin:0}
+    a.back{color:var(--accent);text-decoration:none;border:1px solid rgba(37,99,235,.08);padding:6px 8px;border-radius:6px}
+    .wrap{padding:14px;display:grid;grid-template-columns:1fr 420px;gap:14px}
+    .panel{background:var(--card);border-radius:8px;padding:12px;box-shadow:0 1px 3px rgba(16,24,40,0.04)}
+    .form-row{display:flex;gap:8px;margin-bottom:8px}
+    .input,select{padding:8px;border:1px solid #e6e9ee;border-radius:6px;width:100%}
+    button{background:var(--accent);color:#fff;border:0;padding:8px 10px;border-radius:6px;cursor:pointer}
+    button.secondary{background:transparent;color:var(--accent);border:1px solid rgba(37,99,235,.12)}
+    .small{font-size:12px;color:var(--muted)}
+    #qr{margin-top:12px}
+    ul.list{padding:0;margin:0;list-style:none}
+    li.profile-item{display:flex;justify-content:space-between;align-items:center;padding:8px;border-bottom:1px dashed #f1f5f9}
+    .btn{padding:6px 8px;border-radius:6px;border:0;background:#eef2ff;color:#2563eb;cursor:pointer}
+    .btn.small{padding:4px 6px;font-size:12px}
+    .danger{background:#fee2e2;color:#b91c1c}
+  </style>
+</head>
+<body>
+  <header>
+    <h1>eSIM Generator</h1>
+    <div>
+      <a class="back" href="index.html">← Back</a>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section class="panel">
+      <h3>Create an eSIM profile</h3>
+      <div class="form-row">
+        <input id="profileName" class="input" placeholder="Profile name (e.g. Work)" />
+        <input id="operator" class="input" placeholder="Operator" />
+      </div>
+
+      <div class="form-row">
+        <select id="planType" class="input">
+          <option>Data only</option>
+          <option>Voice + Data</option>
+          <option>IoT</option>
+        </select>
+        <input id="validityDays" class="input" type="number" min="1" value="30" placeholder="Validity (days)" />
+      </div>
+
+      <div class="form-row">
+        <input id="smDp" class="input" placeholder="SM‑DP+ address (sm-dp.example.com)" value="sm-dp.example.com" />
+        <input id="activationLen" class="input" type="number" min="6" max="64" value="12" />
+      </div>
+
+      <div style="display:flex;gap:8px;align-items:center;margin-top:8px">
+        <button id="generateBtn">Generate eSIM</button>
+        <button id="importBtn" class="secondary">Import JSON</button>
+        <input id="importFile" type="file" accept="application/json" style="display:none" />
+      </div>
+
+      <hr />
+
+      <h4>Saved profiles</h4>
+      <ul id="profilesList" class="list"></ul>
+    </section>
+
+    <aside class="panel">
+      <h3>Generated profile</h3>
+      <div id="generatedCard" class="small">No profile yet — generate one.</div>
+
+      <div id="qr"></div>
+
+      <div style="display:flex;gap:8px;margin-top:10px">
+        <button id="downloadJSON" class="secondary">Download JSON</button>
+        <button id="copyPayload" class="secondary">Copy payload</button>
+        <button id="downloadQR" class="secondary">Download QR</button>
+      </div>
+
+      <div style="margin-top:12px" class="small">Note: This page creates mock eSIM profiles for testing and demos only. Real provisioning requires operator SM‑DP+ servers and secure keys.</div>
+    </aside>
+  </main>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+  (function(){
+    const STORAGE = 'esim_profiles_v1';
+    function randomDigits(n){ let s=''; for(let i=0;i<n;i++) s+=Math.floor(Math.random()*10); return s; }
+    function randomHex(n){ const hex='0123456789ABCDEF'; let s=''; for(let i=0;i<n;i++) s+=hex[Math.floor(Math.random()*16)]; return s; }
+    function uid(prefix='p'){ return prefix + '_' + Math.random().toString(36).slice(2,10); }
+    function generateICCID(){ return '89' + randomDigits(18); }
+    function generateEID(){ return randomHex(32); }
+    function generateActivationCode(len=12){ const chars='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<len;i++) s+=chars.charAt(Math.floor(Math.random()*chars.length)); return s; }
+
+    function loadProfiles(){ try{ return JSON.parse(localStorage.getItem(STORAGE) || '[]'); }catch(e){return [];} }
+    function saveProfiles(list){ localStorage.setItem(STORAGE, JSON.stringify(list)); }
+
+    let profiles = loadProfiles();
+    let currentPayload = null; let currentProfile = null;
+
+    function escapeHtml(s){ if(!s) return ''; return s.replace(/[&<>"']/g,function(m){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m];}); }
+
+    function renderProfiles(){ const list = document.getElementById('profilesList'); list.innerHTML=''; if(!profiles.length){ list.innerHTML='<div class="small">No saved profiles</div>'; return; } profiles.forEach(p=>{ const li=document.createElement('li'); li.className='profile-item'; li.innerHTML = '<div><strong>'+escapeHtml(p.name)+'</strong><div class="small">'+escapeHtml(p.operator)+'</div></div><div style="display:flex;gap:6px"><button class="btn small" data-id="'+p.id+'">Show</button><button class="btn small" data-down="'+p.id+'">DL</button><button class="btn small danger" data-del="'+p.id+'">Del</button></div>'; list.appendChild(li); li.querySelector('[data-id]')?.addEventListener('click',()=>showProfile(p.id)); li.querySelector('[data-down]')?.addEventListener('click',()=>downloadProfile(p.id)); li.querySelector('[data-del]')?.addEventListener('click',()=>deleteProfile(p.id)); }); }
+
+    function showProfile(id){ const p = profiles.find(x=>x.id===id); if(!p) return; renderGenerated(p); }
+    function downloadProfile(id){ const p = profiles.find(x=>x.id===id); if(!p) return; const blob = new Blob([JSON.stringify(p,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(p.name||'esim')+'.json'; a.click(); URL.revokeObjectURL(a.href); }
+    function deleteProfile(id){ if(!confirm('Delete profile?')) return; profiles = profiles.filter(x=>x.id!==id); saveProfiles(profiles); renderProfiles(); document.getElementById('generatedCard').textContent='No profile yet — generate one.'; document.getElementById('qr').innerHTML=''; }
+
+    function renderGenerated(profile){ const out = document.getElementById('generatedCard'); out.innerHTML = '<div><strong>'+escapeHtml(profile.name)+'</strong></div><div class="small">Operator: '+escapeHtml(profile.operator)+'</div><div class="small">ICCID: '+profile.iccid+'</div><div class="small">EID: '+profile.eid+'</div><div class="small">Activation: '+profile.activationCode+'</div><div class="small">SM‑DP+: '+escapeHtml(profile.smDp)+'</div><div class="small">Plan: '+escapeHtml(profile.planType)+'</div>'; const qrEl = document.getElementById('qr'); qrEl.innerHTML=''; const payload = JSON.stringify({iccid:profile.iccid,eid:profile.eid,activationCode:profile.activationCode,smDp:profile.smDp,profileName:profile.name,operator:profile.operator}); try{ new QRCode(qrEl,{text:payload,width:200,height:200}); }catch(e){ qrEl.textContent = payload; } currentPayload = payload; currentProfile = profile; }
+
+    function downloadQR(){ const qr = document.getElementById('qr'); if(!qr) return alert('No QR'); const img = qr.querySelector('img'); if(img){ const a=document.createElement('a'); a.href=img.src; a.download=(currentProfile?.name||'esim')+'-qr.png'; a.click(); return; } const canvas = qr.querySelector('canvas'); if(canvas){ const a=document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download=(currentProfile?.name||'esim')+'-qr.png'; a.click(); return; } alert('QR not available (library may be blocked).'); }
+    function copyPayload(){ if(!currentPayload) return alert('No payload to copy'); navigator.clipboard?.writeText(currentPayload).then(()=>alert('Payload copied to clipboard')).catch(()=>alert('Copy failed')); }
+
+    document.addEventListener('DOMContentLoaded', function(){
+      renderProfiles();
+      document.getElementById('generateBtn').addEventListener('click', function(){
+        const name = document.getElementById('profileName').value.trim() || ('Profile_'+(profiles.length+1));
+        const operator = document.getElementById('operator').value.trim() || 'ExampleOperator';
+        const planType = document.getElementById('planType').value;
+        const validityDays = parseInt(document.getElementById('validityDays').value) || 30;
+        const smDp = document.getElementById('smDp').value.trim() || 'sm-dp.example.com';
+        const activationLen = parseInt(document.getElementById('activationLen').value) || 12;
+        const profile = { id: uid('esim'), name, operator, planType, validityDays, smDp, iccid:generateICCID(), eid:generateEID(), activationCode:generateActivationCode(activationLen), createdAt:new Date().toISOString() };
+        profiles.push(profile); saveProfiles(profiles); renderProfiles(); renderGenerated(profile);
+      });
+
+      document.getElementById('downloadJSON').addEventListener('click', function(){ if(!currentProfile) return alert('Generate or select a profile first'); const blob = new Blob([JSON.stringify(currentProfile,null,2)],{type:'application/json'}); const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=(currentProfile.name||'esim')+'.json'; a.click(); URL.revokeObjectURL(a.href); });
+      document.getElementById('copyPayload').addEventListener('click', copyPayload);
+      document.getElementById('downloadQR').addEventListener('click', downloadQR);
+
+      document.getElementById('importBtn').addEventListener('click', ()=>document.getElementById('importFile').click());
+      document.getElementById('importFile').addEventListener('change', function(e){ const f = e.target.files[0]; if(!f) return; const r=new FileReader(); r.onload=function(ev){ try{ const parsed = JSON.parse(ev.target.result); if(Array.isArray(parsed)){ profiles = parsed; } else if(parsed && parsed.id){ profiles.push(parsed); } saveProfiles(profiles); renderProfiles(); }catch(err){ alert('Invalid JSON file'); } }; r.readAsText(f); e.target.value=''; });
+    });
+  })();
+  </script>
+</body>
+</html>
