@@ -5,319 +5,93 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Listing — Virtual SIM</title>
   <style>
+    /* Réutilisation de tes variables CSS pour la cohérence */
     :root {
       --bg: #f8fafc; --card: #ffffff; --accent: #2563eb; --accent-light: #eff6ff;
-      --accent-hover: #1d4ed8; --muted: #64748b; --border: #e2e8f0;
-      --text: #0f172a; --text-secondary: #475569;
-      --danger: #ef4444; --danger-bg: #fef2f2;
-      --radius: 12px; --radius-sm: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+      --muted: #64748b; --border: #e2e8f0; --text: #0f172a; --text-secondary: #475569;
+      --radius: 12px; --radius-sm: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.06);
     }
     @media (prefers-color-scheme: dark) {
       :root {
         --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; --accent-light: #1e3a5f;
-        --accent-hover: #60a5fa; --muted: #94a3b8; --border: #334155;
-        --text: #f1f5f9; --text-secondary: #94a3b8;
-        --danger: #f87171; --danger-bg: #450a0a;
+        --muted: #94a3b8; --border: #334155; --text: #f1f5f9; --text-secondary: #94a3b8;
       }
     }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
+    body { font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
+    nav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; background: var(--card); border-bottom: 1px solid var(--border); }
+    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 600; }
+    .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; }
+    .container { max-width: 1000px; margin: 40px auto; padding: 0 24px; }
+    
+    /* Stats Cards */
+    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); }
+    .stat-val { font-size: 24px; font-weight: 700; color: var(--accent); }
+    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
 
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 24px; height: 60px;
-      background: var(--card); border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 10;
-    }
-    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
-    .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
-    .nav-links { display: flex; gap: 6px; }
-    .nav-link {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
-      border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; font-weight: 500;
-      color: var(--text-secondary); transition: background 0.15s, color 0.15s; border: 1px solid transparent;
-    }
-    .nav-link:hover { background: var(--accent-light); color: var(--accent); border-color: var(--border); }
-    .nav-link.active { background: var(--accent-light); color: var(--accent); border-color: rgba(37,99,235,0.2); }
-
-    .toolbar {
-      display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
-      padding: 16px 24px; border-bottom: 1px solid var(--border); background: var(--card);
-    }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px; padding: 7px 12px;
-      border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
-      border: 1px solid transparent; cursor: pointer; font-family: inherit; transition: all 0.15s;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-secondary { background: transparent; color: var(--accent); border-color: rgba(37,99,235,0.25); }
-    .btn-secondary:hover { background: var(--accent-light); }
-    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
-    .btn-ghost:hover { background: var(--bg); color: var(--text); }
-    .spacer { flex: 1; }
-
-    .stats-bar {
-      display: flex; gap: 16px; padding: 12px 24px; background: var(--bg);
-      border-bottom: 1px solid var(--border);
-    }
-    .stat { display: flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); }
-    .stat strong { color: var(--text); font-weight: 600; }
-    .dot { width: 8px; height: 8px; border-radius: 50%; }
-    .dot-blue { background: var(--accent); }
-    .dot-green { background: #16a34a; }
-    .dot-amber { background: #d97706; }
-
-    .layout { display: grid; grid-template-columns: 1fr 380px; gap: 0; height: calc(100vh - 136px); }
-    @media (max-width: 768px) { .layout { grid-template-columns: 1fr; height: auto; } }
-
-    .main-panel { padding: 20px 24px; overflow-y: auto; border-right: 1px solid var(--border); }
-    .side-panel { padding: 20px; overflow-y: auto; }
-
-    .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
-    .section-title { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-    .count-badge { background: var(--border); color: var(--text-secondary); font-size: 11px; font-weight: 600; padding: 1px 7px; border-radius: 999px; }
-
-    .contact-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 14px 16px; margin-bottom: 10px; transition: border-color 0.15s;
-    }
-    .contact-card:hover { border-color: var(--accent); }
-    .contact-header { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
-    .avatar {
-      width: 36px; height: 36px; border-radius: 50%; background: var(--accent-light);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 13px; font-weight: 600; color: var(--accent); flex-shrink: 0;
-    }
-    .contact-name { font-size: 14px; font-weight: 600; }
-    .contact-email { font-size: 12px; color: var(--muted); margin-top: 1px; }
-    .sims-grid { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--border); }
-    .sim-chip {
-      display: inline-flex; align-items: center; gap: 4px;
-      background: var(--bg); border: 1px solid var(--border); border-radius: 6px;
-      padding: 4px 8px; font-size: 11px; color: var(--text-secondary);
-    }
-    .sim-chip-dot { width: 6px; height: 6px; border-radius: 50%; background: #16a34a; flex-shrink: 0; }
-    .sim-label { font-weight: 500; color: var(--text); }
-    .sim-number { font-family: 'SF Mono', Consolas, monospace; font-size: 10px; }
-
-    .esim-card {
-      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 14px; margin-bottom: 10px; transition: border-color 0.15s;
-    }
-    .esim-card:hover { border-color: var(--accent); }
-    .esim-header { display: flex; align-items: flex-start; justify-content: space-between; margin-bottom: 8px; }
-    .esim-name { font-size: 13px; font-weight: 600; }
-    .esim-operator { font-size: 11px; color: var(--muted); }
-    .esim-badge { background: var(--accent-light); color: var(--accent); font-size: 10px; font-weight: 600; padding: 2px 8px; border-radius: 999px; flex-shrink: 0; }
-    .esim-fields { display: flex; flex-direction: column; gap: 3px; }
-    .esim-field { display: flex; align-items: center; gap: 6px; font-size: 11px; }
-    .esim-key { color: var(--muted); min-width: 50px; }
-    .esim-val { font-family: 'SF Mono', Consolas, monospace; font-size: 10px; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    .msg-stat {
-      background: var(--card); border: 1px solid var(--border); border-radius: var(--radius);
-      padding: 16px; text-align: center;
-    }
-    .msg-count { font-size: 28px; font-weight: 700; color: var(--accent); }
-    .msg-label { font-size: 12px; color: var(--muted); margin-top: 4px; }
-
-    .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 32px 0; }
-    .empty-icon { font-size: 32px; margin-bottom: 8px; }
+    /* Table Styling */
+    .table-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
+    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
+    th { padding: 12px 16px; background: var(--bg); color: var(--muted); font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--border); }
+    td { padding: 16px; border-bottom: 1px solid var(--border); }
+    .mono { font-family: monospace; color: var(--muted); font-size: 12px; }
+    .badge { padding: 4px 8px; border-radius: 6px; background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 600; }
+    .empty { padding: 60px; text-align: center; color: var(--muted); }
   </style>
 </head>
 <body>
   <nav>
-    <a href="index.html" class="logo">
-      <div class="logo-icon">
-        <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-      </div>
-      <span class="logo-text">Virtual SIM</span>
-    </a>
-    <div class="nav-links">
-      <a href="esim.html" class="nav-link">eSIM Generator</a>
-      <a href="list.html" class="nav-link active">Listing</a>
-      <a href="index.html" class="nav-link">Chat</a>
+    <a href="index.html" class="logo"><div class="logo-icon"></div><span>Virtual SIM</span></a>
+    <div style="display:flex; gap:10px;">
+      <a href="esim.html" style="text-decoration:none; color:var(--text-secondary); font-size:14px;">Generator</a>
+      <a href="list.html" style="text-decoration:none; color:var(--accent); font-size:14px; font-weight:600;">Listing</a>
     </div>
   </nav>
 
-  <div class="toolbar">
-    <button id="refreshBtn" class="btn btn-primary">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 102.13-9.36L1 10"/></svg>
-      Refresh
-    </button>
-    <button id="importBtn" class="btn btn-ghost">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-      Import JSON
-    </button>
-    <input id="importFile" type="file" accept="application/json" style="display:none" />
-    <div class="spacer"></div>
-    <button id="exportContacts" class="btn btn-secondary">Export contacts</button>
-    <button id="exportEsims" class="btn btn-secondary">Export eSIMs</button>
-    <button id="exportAll" class="btn btn-primary">
-      <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-      Export all
-    </button>
-  </div>
-
-  <div id="statsBar" class="stats-bar"></div>
-
-  <div class="layout">
-    <div class="main-panel">
-      <div class="section-header">
-        <div class="section-title">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
-          Contacts
-        </div>
-        <span id="contactCount" class="count-badge">0</span>
-      </div>
-      <div id="contactsContainer">
-        <div class="empty"><div class="empty-icon">👤</div>No contacts found. Go to <a href="index.html" style="color:var(--accent)">Chat</a> to add some.</div>
-      </div>
+  <main class="container">
+    <div class="stats">
+      <div class="stat-card"><div id="total-sim" class="stat-val">0</div><div class="stat-label">eSIMs Active</div></div>
+      <div class="stat-card"><div id="operators-count" class="stat-val">0</div><div class="stat-label">Operators</div></div>
     </div>
 
-    <div class="side-panel">
-      <div class="section-header" style="margin-bottom:14px">
-        <div class="section-title">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-          eSIM Profiles
-        </div>
-        <span id="esimCount" class="count-badge">0</span>
-      </div>
-      <div id="esimContainer">
-        <div class="empty"><div class="empty-icon">💳</div>No eSIM profiles. Go to <a href="esim.html" style="color:var(--accent)">eSIM Generator</a>.</div>
-      </div>
-
-      <div style="margin-top: 20px; margin-bottom: 12px; border-top: 1px solid var(--border); padding-top: 16px;">
-        <div class="section-title" style="margin-bottom: 12px;">
-          <svg width="15" height="15" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg>
-          Messages
-        </div>
-        <div class="msg-stat">
-          <div class="msg-count" id="msgCount">0</div>
-          <div class="msg-label">messages stored</div>
-        </div>
-      </div>
+    <div class="table-wrapper">
+      <table id="sim-table">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Operator</th>
+            <th>ICCID</th>
+            <th>Plan</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody id="sim-list"></tbody>
+      </table>
+      <div id="no-data" class="empty" style="display:none;">No profiles found in local storage.</div>
     </div>
-  </div>
+  </main>
 
   <script>
-  (function () {
-    const KEY = 'virtual_sim_comms_v1';
-    const ESIM_KEY = 'esim_profiles_v1';
-    const escapeHtml = s => s ? String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])) : '';
-    const initials = name => name ? name.split(' ').slice(0, 2).map(w => w[0]).join('').toUpperCase() : '?';
+    const profiles = JSON.parse(localStorage.getItem('esim_profiles_v1') || '[]');
+    const list = document.getElementById('sim-list');
+    
+    document.getElementById('total-sim').textContent = profiles.length;
+    document.getElementById('operators-count').textContent = new Set(profiles.map(p => p.operator)).size;
 
-    function loadContacts() { try { return JSON.parse(localStorage.getItem(KEY) || '{}').contacts || []; } catch { return []; } }
-    function loadMessages() { try { return JSON.parse(localStorage.getItem(KEY) || '{}').messages || []; } catch { return []; } }
-    function loadEsims() { try { return JSON.parse(localStorage.getItem(ESIM_KEY) || '[]') || []; } catch { return []; } }
-
-    function saveContacts(c) { const msgs = loadMessages(); localStorage.setItem(KEY, JSON.stringify({contacts: c, messages: msgs})); }
-    function saveMessages(m) { const contacts = loadContacts(); localStorage.setItem(KEY, JSON.stringify({contacts, messages: m})); }
-    function saveEsims(e) { localStorage.setItem(ESIM_KEY, JSON.stringify(e)); }
-
-    function renderStats() {
-      const contacts = loadContacts(), esims = loadEsims(), msgs = loadMessages();
-      const totalSims = contacts.reduce((n, c) => n + (c.sims || []).length, 0);
-      document.getElementById('statsBar').innerHTML = `
-        <div class="stat"><span class="dot dot-blue"></span><strong>${contacts.length}</strong> contacts</div>
-        <div class="stat"><span class="dot dot-green"></span><strong>${totalSims}</strong> SIMs</div>
-        <div class="stat"><span class="dot dot-amber"></span><strong>${esims.length}</strong> eSIM profiles</div>
-        <div class="stat"><strong>${msgs.length}</strong> messages</div>`;
+    if (profiles.length === 0) {
+      document.getElementById('sim-table').style.display = 'none';
+      document.getElementById('no-data').style.display = 'block';
+    } else {
+      list.innerHTML = profiles.map(p => `
+        <tr>
+          <td><strong>${p.name}</strong></td>
+          <td>${p.operator}</td>
+          <td class="mono">${p.iccid}</td>
+          <td><span class="badge">${p.planType}</span></td>
+          <td><span style="color:#16a34a">● Active</span></td>
+        </tr>
+      `).join('');
     }
-
-    function renderContacts() {
-      const contacts = loadContacts();
-      document.getElementById('contactCount').textContent = contacts.length;
-      const el = document.getElementById('contactsContainer');
-      if (!contacts.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">👤</div>No contacts found. Go to <a href="index.html" style="color:var(--accent)">Chat</a> to add some.</div>'; return; }
-      el.innerHTML = contacts.map(c => {
-        const sims = (c.sims || []).map(s => `
-          <div class="sim-chip">
-            <span class="sim-chip-dot"></span>
-            <span class="sim-label">${escapeHtml(s.label || 'SIM')}</span>
-            <span class="sim-number">${escapeHtml(s.number ? s.number.slice(0, 8) + '…' : '')}</span>
-          </div>`).join('');
-        return `
-          <div class="contact-card">
-            <div class="contact-header">
-              <div class="avatar">${escapeHtml(initials(c.name))}</div>
-              <div>
-                <div class="contact-name">${escapeHtml(c.name)}</div>
-                <div class="contact-email">${escapeHtml(c.email || 'No email')}</div>
-              </div>
-              <div style="margin-left:auto;font-size:11px;color:var(--muted)">${(c.sims||[]).length} SIM${(c.sims||[]).length !== 1 ? 's' : ''}</div>
-            </div>
-            ${sims ? `<div class="sims-grid">${sims}</div>` : ''}
-          </div>`;
-      }).join('');
-    }
-
-    function renderEsims() {
-      const esims = loadEsims();
-      document.getElementById('esimCount').textContent = esims.length;
-      const el = document.getElementById('esimContainer');
-      if (!esims.length) { el.innerHTML = '<div class="empty"><div class="empty-icon">💳</div>No eSIM profiles. Go to <a href="esim.html" style="color:var(--accent)">eSIM Generator</a>.</div>'; return; }
-      el.innerHTML = esims.map(p => `
-        <div class="esim-card">
-          <div class="esim-header">
-            <div>
-              <div class="esim-name">${escapeHtml(p.name || 'Unnamed')}</div>
-              <div class="esim-operator">${escapeHtml(p.operator || '')}</div>
-            </div>
-            <span class="esim-badge">${escapeHtml(p.planType || 'Unknown')}</span>
-          </div>
-          <div class="esim-fields">
-            ${p.iccid ? `<div class="esim-field"><span class="esim-key">ICCID</span><span class="esim-val">${escapeHtml(p.iccid)}</span></div>` : ''}
-            ${p.eid ? `<div class="esim-field"><span class="esim-key">EID</span><span class="esim-val">${escapeHtml(p.eid.slice(0, 16) + '…')}</span></div>` : ''}
-            ${p.smDp ? `<div class="esim-field"><span class="esim-key">SM‑DP+</span><span class="esim-val">${escapeHtml(p.smDp)}</span></div>` : ''}
-          </div>
-        </div>`).join('');
-    }
-
-    function renderMessages() { document.getElementById('msgCount').textContent = loadMessages().length; }
-    function renderAll() { renderStats(); renderContacts(); renderEsims(); renderMessages(); }
-
-    function exportJson(name, data) {
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], {type: 'application/json'}));
-      a.download = name; a.click(); URL.revokeObjectURL(a.href);
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      renderAll();
-      document.getElementById('refreshBtn').addEventListener('click', renderAll);
-      document.getElementById('exportContacts').addEventListener('click', () => exportJson('contacts.json', loadContacts()));
-      document.getElementById('exportEsims').addEventListener('click', () => exportJson('esim_profiles.json', loadEsims()));
-      document.getElementById('exportAll').addEventListener('click', () => exportJson('all_data.json', {contacts: loadContacts(), esims: loadEsims(), messages: loadMessages()}));
-
-      document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
-      document.getElementById('importFile').addEventListener('change', function (e) {
-        const f = e.target.files[0]; if (!f) return;
-        const r = new FileReader(); r.onload = ev => {
-          try {
-            const p = JSON.parse(ev.target.result);
-            const merge = (existing, incoming, key = 'id') => { incoming.forEach(x => { if (!existing.find(y => y[key] === x[key])) existing.push(x); }); return existing; };
-            if (p?.contacts) saveContacts(merge(loadContacts(), p.contacts));
-            if (p?.messages) saveMessages(merge(loadMessages(), p.messages));
-            const esimArr = p?.esims || p?.esim_profiles || p?.profiles;
-            if (esimArr) saveEsims(merge(loadEsims(), esimArr));
-            if (Array.isArray(p)) {
-              if (p[0]?.iccid || p[0]?.eid) saveEsims(merge(loadEsims(), p));
-              else if (p[0]?.name) saveContacts(merge(loadContacts(), p));
-              else if (p[0]?.from && p[0]?.to) saveMessages(merge(loadMessages(), p));
-            }
-            if (p?.iccid && p?.id) saveEsims(merge(loadEsims(), [p]));
-            else if (p?.name && p?.id) saveContacts(merge(loadContacts(), [p]));
-            renderAll(); alert('Import complete.');
-          } catch { alert('Invalid JSON file'); }
-        };
-        r.readAsText(f); e.target.value = '';
-      });
-    });
-  })();
   </script>
 </body>
 </html>
