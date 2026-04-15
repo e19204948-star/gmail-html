@@ -3,60 +3,130 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Générateur eSIM — Virtual SIM</title>
+  <title>Chat — Virtual SIM</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root{--bg:#f0f2f5;--card:#fff;--accent:#0d6efd;--accent-light:#e8f0fe;--accent-hover:#0b5ed7;--muted:#6c757d;--border:#dee2e6;--text:#212529;--text-secondary:#6c757d;--success:#22c55e;--success-bg:#f0fdf4;--radius:14px;--radius-sm:9px;--shadow:0 2px 8px rgba(0,0,0,0.08)}
-    @media(prefers-color-scheme:dark){:root{--bg:#0f1117;--card:#1a1d26;--accent:#4d8ef7;--accent-light:#1a2540;--accent-hover:#6ba3f9;--muted:#8b949e;--border:#30363d;--text:#e6edf3;--text-secondary:#8b949e;--success:#4ade80;--success-bg:#0a2e1a}}
+    :root {
+      --bg: #f0f2f5; --card: #ffffff; --accent: #0d6efd; --accent-light: #e8f0fe;
+      --accent-hover: #0b5ed7; --muted: #6c757d; --border: #dee2e6;
+      --text: #212529; --text-secondary: #6c757d; --danger: #dc3545;
+      --danger-bg: #fff5f5; --radius: 14px; --radius-sm: 9px;
+      --online: #22c55e; --msg-out: #0d6efd; --msg-in: #ffffff;
+      --shadow: 0 2px 8px rgba(0,0,0,0.08); --shadow-md: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    @media(prefers-color-scheme:dark){
+      :root{--bg:#0f1117;--card:#1a1d26;--accent:#4d8ef7;--accent-light:#1a2540;
+      --accent-hover:#6ba3f9;--muted:#8b949e;--border:#30363d;--text:#e6edf3;
+      --text-secondary:#8b949e;--danger:#f85149;--danger-bg:#2d0f0f;
+      --msg-out:#1a3a6e;--msg-in:#21262d;--shadow:0 2px 8px rgba(0,0,0,0.3)}
+    }
     *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
-    nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);height:100vh;display:flex;flex-direction:column;overflow:hidden}
+
+    /* NAV */
+    nav{display:flex;align-items:center;justify-content:space-between;padding:0 20px;height:56px;background:var(--card);border-bottom:1px solid var(--border);flex-shrink:0;gap:12px}
     .logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text)}
-    .logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
     .logo-text{font-size:15px;font-weight:600;letter-spacing:-0.02em}
-    .nav-links{display:flex;gap:6px}
-    .nav-link{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;text-decoration:none;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all 0.15s;border:1px solid transparent}
+    .nav-right{display:flex;align-items:center;gap:6px;flex-wrap:nowrap}
+    .nav-link{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:var(--radius-sm);text-decoration:none;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all 0.15s;border:1px solid transparent;white-space:nowrap}
     .nav-link:hover,.nav-link.active{background:var(--accent-light);color:var(--accent);border-color:rgba(13,110,253,0.2)}
-    .layout{display:grid;grid-template-columns:1fr 360px;gap:20px;max-width:1060px;margin:0 auto;padding:24px}
-    @media(max-width:768px){.layout{grid-template-columns:1fr}}
-    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
-    .card-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
-    .field-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
-    .field-group.single{grid-template-columns:1fr}
-    label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
-    input,select{width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);font-family:inherit;transition:border-color 0.15s}
-    input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,110,253,0.1)}
-    input::placeholder{color:var(--muted)}
-    .actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
-    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:13px;font-weight:500;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all 0.15s}
+    .btn{display:inline-flex;align-items:center;gap:5px;padding:6px 11px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap}
     .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}
-    .btn-secondary{background:transparent;color:var(--accent);border-color:rgba(13,110,253,0.3)}.btn-secondary:hover{background:var(--accent-light)}
     .btn-ghost{background:transparent;color:var(--text-secondary);border-color:var(--border)}.btn-ghost:hover{background:var(--bg);color:var(--text)}
-    .drop-zone{border:1.5px dashed var(--border);border-radius:9px;padding:20px;text-align:center;cursor:pointer;margin-top:12px;transition:all 0.15s;color:var(--muted);font-size:13px}
-    .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
-    .profile-list{display:flex;flex-direction:column;gap:8px}
-    .profile-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg);transition:border-color 0.15s}
-    .profile-item:hover{border-color:var(--accent)}
-    .profile-name{font-size:13px;font-weight:500}
-    .profile-sub{font-size:11px;color:var(--muted);margin-top:2px}
-    .profile-actions{display:flex;gap:4px}
-    .icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all 0.15s}
+    .btn-danger{background:transparent;color:var(--danger);border-color:rgba(220,53,69,0.3)}.btn-danger:hover{background:var(--danger-bg)}
+    select.sim-sel{font-size:12px;padding:5px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;max-width:200px}
+
+    /* LAYOUT */
+    .layout{display:grid;grid-template-columns:240px 250px 1fr;flex:1;overflow:hidden;min-height:0}
+
+    /* PANELS */
+    .panel{background:var(--card);border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+    .panel-header{padding:12px 14px 10px;border-bottom:1px solid var(--border);flex-shrink:0}
+    .panel-title{font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;color:var(--muted);margin-bottom:10px}
+    .panel-body{padding:8px 10px;overflow-y:auto;flex:1}
+    .form-row{display:flex;gap:5px;margin-bottom:7px}
+    input,select{padding:6px 9px;font-size:12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-family:inherit;transition:border-color 0.15s;width:100%}
+    input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,110,253,0.1)}
+
+    /* CONTACTS */
+    .contact-item{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-radius:var(--radius-sm);cursor:pointer;margin-bottom:2px;border:1px solid transparent;transition:all 0.15s}
+    .contact-item:hover{background:var(--accent-light);border-color:rgba(13,110,253,0.12)}
+    .contact-item.selected{background:var(--accent-light);border-color:rgba(13,110,253,0.25)}
+    .contact-avatar{width:32px;height:32px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0}
+    .contact-info{flex:1;min-width:0;padding:0 8px}
+    .contact-name{font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .contact-meta{font-size:11px;color:var(--muted);margin-top:1px}
+    .sim-count{background:var(--border);color:var(--text-secondary);font-size:10px;font-weight:600;padding:1px 6px;border-radius:999px;flex-shrink:0}
+
+    /* SIMS */
+    .sim-card{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius-sm);padding:9px 11px;margin-bottom:5px;display:flex;justify-content:space-between;align-items:center;transition:border-color 0.15s}
+    .sim-card:hover{border-color:var(--accent)}
+    .sim-label{font-size:12px;font-weight:500}.sim-number{font-size:10px;font-family:'DM Mono',monospace;color:var(--muted);margin-top:1px}
+    .icon-btn{width:24px;height:24px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all 0.15s}
     .icon-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
-    .icon-btn.danger:hover{background:#fff5f5;color:#dc3545;border-color:#dc3545}
-    @media(prefers-color-scheme:dark){.icon-btn.danger:hover{background:#2d0f0f}}
-    .preview-card{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:14px}
-    .preview-name{font-size:16px;font-weight:600;margin-bottom:10px}
-    .preview-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
-    .preview-row:last-child{border-bottom:none}
-    .preview-key{color:var(--muted)}
-    .preview-val{font-weight:500;font-family:'DM Mono',monospace;font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    #qr{display:flex;justify-content:center;margin:14px 0}
-    #qr canvas,#qr img{border-radius:9px;border:4px solid var(--card)}
-    .note{background:var(--accent-light);border:1px solid rgba(13,110,253,0.2);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--accent);margin-top:12px}
-    .empty{color:var(--muted);font-size:13px;text-align:center;padding:24px 0}
-    .section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
-    .badge-plan{background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:500;padding:2px 7px;border-radius:999px}
+    .icon-btn.danger:hover{background:var(--danger-bg);color:var(--danger);border-color:var(--danger)}
+
+    /* CHAT */
+    .chat-panel{display:flex;flex-direction:column;overflow:hidden;background:var(--bg)}
+    .chat-top{padding:10px 16px;border-bottom:1px solid var(--border);display:flex;gap:8px;flex-shrink:0;flex-wrap:wrap;align-items:center;background:var(--card);box-shadow:var(--shadow)}
+    .chat-peer{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
+    .peer-avatar{width:34px;height:34px;border-radius:50%;background:var(--accent-light);color:var(--accent);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;flex-shrink:0}
+    .peer-name{font-size:14px;font-weight:600}
+    .peer-sim{font-size:11px;color:var(--muted);font-family:'DM Mono',monospace}
+    .online-dot{width:8px;height:8px;border-radius:50%;background:var(--online);flex-shrink:0}
+    .lock-badge{display:inline-flex;align-items:center;gap:4px;background:#f0fdf4;color:#15803d;font-size:10px;font-weight:600;padding:2px 7px;border-radius:999px;border:1px solid #bbf7d0;white-space:nowrap}
+    @media(prefers-color-scheme:dark){.lock-badge{background:#0a2e1a;color:#4ade80;border-color:#166534}}
+
+    .chat-log{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:6px}
+    .msg-group{display:flex;flex-direction:column;gap:2px;margin-bottom:6px}
+    .msg-group.out{align-items:flex-end}
+    .msg-group.in{align-items:flex-start}
+    .msg-sender{font-size:11px;color:var(--muted);padding:0 4px;margin-bottom:2px}
+    .msg{max-width:68%;padding:9px 13px;border-radius:14px;font-size:13px;line-height:1.5;word-break:break-word;position:relative}
+    .msg.out{background:var(--accent);color:#fff;border-bottom-right-radius:4px}
+    .msg.in{background:var(--msg-in);border:1px solid var(--border);color:var(--text);border-bottom-left-radius:4px}
+    @media(prefers-color-scheme:dark){.msg.out{background:var(--msg-out);color:#e6edf3}}
+    .msg-time{font-size:10px;opacity:0.55;margin-top:3px}
+    .msg-status{font-size:10px;opacity:0.6;display:inline-flex;align-items:center;gap:2px}
+    .msg-enc{font-style:italic;opacity:0.6}
+    .typing{display:flex;align-items:center;gap:4px;padding:8px 12px;background:var(--msg-in);border:1px solid var(--border);border-radius:14px;border-bottom-left-radius:4px;width:fit-content}
+    .typing span{width:6px;height:6px;border-radius:50%;background:var(--muted);animation:blink 1.4s infinite both}
+    .typing span:nth-child(2){animation-delay:0.2s}
+    .typing span:nth-child(3){animation-delay:0.4s}
+    @keyframes blink{0%,80%,100%{opacity:0.2}40%{opacity:1}}
+
+    .chat-input-area{padding:12px 16px;border-top:1px solid var(--border);display:flex;gap:8px;align-items:flex-end;flex-shrink:0;background:var(--card)}
+    .msg-input{flex:1;resize:none;min-height:36px;max-height:120px;padding:8px 12px;font-size:13px;border:1px solid var(--border);border-radius:18px;background:var(--bg);color:var(--text);font-family:inherit;line-height:1.4;transition:border-color 0.15s}
+    .msg-input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,110,253,0.1)}
+    .send-btn{width:36px;height:36px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:all 0.15s}
+    .send-btn:hover{background:var(--accent-hover);transform:scale(1.05)}
+    .send-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none}
+
+    .chat-footer{padding:5px 16px 8px;border-top:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-shrink:0;background:var(--card)}
+    .status-text{font-size:11px;color:var(--muted)}
+    .empty-chat{text-align:center;color:var(--muted);font-size:13px;margin:auto;padding:40px;max-width:280px;line-height:1.6}
+    .empty-icon{font-size:32px;margin-bottom:12px;opacity:0.4}
+
+    /* TOAST */
+    .toast{position:fixed;bottom:24px;right:24px;background:var(--text);color:var(--card);padding:10px 16px;border-radius:var(--radius-sm);font-size:12px;font-weight:500;opacity:0;transform:translateY(8px);transition:all 0.25s;pointer-events:none;z-index:100}
+    .toast.show{opacity:1;transform:translateY(0)}
+
+    /* FIREBASE STATUS */
+    .fb-status{display:inline-flex;align-items:center;gap:5px;font-size:11px;padding:3px 9px;border-radius:999px;background:var(--bg);border:1px solid var(--border)}
+    .fb-dot{width:6px;height:6px;border-radius:50%;background:#94a3b8}
+    .fb-dot.connected{background:var(--online)}
+    .fb-dot.error{background:var(--danger)}
+    .fb-dot.loading{background:#f59e0b;animation:pulse 1s infinite}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.4}}
+
+    /* DATE SEPARATOR */
+    .date-sep{display:flex;align-items:center;gap:10px;margin:12px 0}
+    .date-sep::before,.date-sep::after{content:'';flex:1;height:1px;background:var(--border)}
+    .date-sep span{font-size:11px;color:var(--muted);white-space:nowrap;padding:0 4px}
+
+    .no-contacts{font-size:12px;color:var(--muted);text-align:center;padding:20px 10px;line-height:1.6}
   </style>
 </head>
 <body>
@@ -65,142 +135,516 @@
       <div class="logo-icon"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
       <span class="logo-text">Virtual SIM</span>
     </a>
-    <div class="nav-links">
-      <a href="esim.html" class="nav-link active">Générateur eSIM</a>
+    <div class="nav-right">
+      <span id="fbStatus" class="fb-status"><span class="fb-dot loading" id="fbDot"></span><span id="fbLabel">Connexion…</span></span>
+      <select id="activeSimSelect" class="sim-sel"></select>
+      <a href="esim.html" class="nav-link">eSIMs</a>
       <a href="list.html" class="nav-link">Listing</a>
-      <a href="index.html" class="nav-link">Chat</a>
+      <button id="exportBtn" class="btn btn-ghost">Export</button>
+      <button id="importBtn" class="btn btn-ghost">Import</button>
+      <button id="clearBtn" class="btn btn-danger">Effacer</button>
+      <input id="importFile" type="file" accept="application/json" style="display:none" />
     </div>
   </nav>
 
   <div class="layout">
-    <section>
-      <div class="card">
-        <div class="card-title">
-          <svg width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-          Créer un profil eSIM
+    <!-- CONTACTS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Contacts</div>
+        <div class="form-row">
+          <input id="contactName" placeholder="Nom" />
+          <input id="contactEmail" placeholder="Email" />
+          <button id="addContactBtn" class="btn btn-primary" style="padding:6px 9px;white-space:nowrap">+</button>
         </div>
-        <div class="field-group">
-          <div><label for="profileName">Nom du profil</label><input id="profileName" placeholder="ex: Pro" /></div>
-          <div><label for="operator">Opérateur</label><input id="operator" placeholder="ex: ExampleMNO" /></div>
-        </div>
-        <div class="field-group">
-          <div><label for="planType">Type de plan</label><select id="planType"><option>Data uniquement</option><option>Voix + Data</option><option>IoT</option></select></div>
-          <div><label for="validityDays">Validité (jours)</label><input id="validityDays" type="number" min="1" value="30" /></div>
-        </div>
-        <div class="field-group">
-          <div><label for="smDp">Adresse SM‑DP+</label><input id="smDp" placeholder="sm-dp.example.com" value="sm-dp.example.com" /></div>
-          <div><label for="activationLen">Longueur code activation</label><input id="activationLen" type="number" min="6" max="64" value="12" /></div>
-        </div>
-        <div class="actions">
-          <button id="generateBtn" class="btn btn-primary">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="12 5 12 19"/><polyline points="19 12 12 19 5 12"/></svg>
-            Générer eSIM
-          </button>
-          <button id="importBtn" class="btn btn-secondary">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Importer JSON
-          </button>
-          <input id="importFile" type="file" accept="application/json" style="display:none" />
-        </div>
-        <div id="dropZone" class="drop-zone">
-          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block;opacity:0.4"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Déposer des fichiers JSON eSIM ici, ou cliquer pour parcourir
+        <div class="form-row">
+          <button id="importEsimBtn" class="btn btn-ghost" style="width:100%;font-size:11px">Importer eSIM</button>
+          <input id="importEsimFile" type="file" accept="application/json" style="display:none" />
         </div>
       </div>
-      <div class="card">
-        <div class="section-label">Profils sauvegardés</div>
-        <div id="profilesList" class="profile-list"><div class="empty">Aucun profil — générez-en un ci-dessus.</div></div>
-      </div>
-    </section>
+      <div class="panel-body"><ul id="contactsList" style="list-style:none;padding:0;margin:0"></ul></div>
+    </div>
 
-    <aside>
-      <div class="card">
-        <div class="card-title">
-          <svg width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
-          Profil généré
+    <!-- SIMS -->
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">SIMs</div>
+        <div id="simsControls" style="display:none">
+          <div class="form-row">
+            <input id="simLabel" placeholder="Label (ex: Pro)" />
+            <input id="simNumber" placeholder="ICCID (opt.)" />
+            <button id="addSimBtn" class="btn btn-primary" style="padding:6px 9px">+</button>
+          </div>
         </div>
-        <div id="generatedCard"><div class="empty">Aucun profil — générez-en un.</div></div>
-        <div id="qr"></div>
-        <div id="exportActions" class="actions" style="display:none">
-          <button id="downloadJSON" class="btn btn-ghost">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> JSON
-          </button>
-          <button id="copyPayload" class="btn btn-ghost">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copier
-          </button>
-          <button id="downloadQR" class="btn btn-ghost">
-            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="4 17 4 20 7 20"/><polyline points="17 20 20 20 20 17"/><polyline points="20 7 20 4 17 4"/><polyline points="7 4 4 4 4 7"/></svg> QR
-          </button>
-        </div>
-        <div class="note"><strong>Note :</strong> Profils simulés à des fins de test uniquement. Un vrai eSIM nécessite une infrastructure SM‑DP+ opérateur.</div>
+        <div id="simsForContactHeader" style="font-size:12px;color:var(--muted)">Sélectionner un contact</div>
       </div>
-    </aside>
+      <div class="panel-body" id="simsList"></div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="chat-panel">
+      <div class="chat-top">
+        <div class="chat-peer" id="chatPeerInfo">
+          <div class="peer-avatar" id="peerAvatar">?</div>
+          <div>
+            <select id="recipientContactSelect" style="font-size:12px;border:none;background:transparent;color:var(--text);font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;padding:0"></select>
+            <div class="peer-sim" id="peerSimLine">
+              <select id="recipientSimSelect" style="font-size:11px;border:none;background:transparent;color:var(--muted);font-family:'DM Mono',monospace;cursor:pointer;padding:0"></select>
+            </div>
+          </div>
+        </div>
+        <span class="lock-badge">
+          <svg width="9" height="9" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0110 0v4"/></svg> E2E chiffré
+        </span>
+      </div>
+      <div id="chatLog" class="chat-log">
+        <div class="empty-chat"><div class="empty-icon">💬</div>Sélectionnez un SIM actif et un destinataire pour commencer à chatter.</div>
+      </div>
+      <div id="typingArea" style="padding:0 16px 6px;min-height:0;display:none">
+        <div class="typing"><span></span><span></span><span></span></div>
+      </div>
+      <div class="chat-input-area">
+        <textarea id="messageInput" class="msg-input" placeholder="Écrire un message…" rows="1"></textarea>
+        <button id="sendBtn" class="send-btn" disabled>
+          <svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+        </button>
+      </div>
+      <div class="chat-footer">
+        <div id="statusInfo" class="status-text">Aucun SIM sélectionné</div>
+        <button id="downloadDump" class="btn btn-ghost" style="font-size:11px">Télécharger dump</button>
+      </div>
+    </div>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script>
-  (function(){
-    const STORAGE='esim_profiles_v1';
-    const rDigits=n=>Array.from({length:n},()=>Math.floor(Math.random()*10)).join('');
-    const rHex=n=>Array.from({length:n},()=>'0123456789ABCDEF'[Math.floor(Math.random()*16)]).join('');
-    const uid=(p='p')=>p+'_'+Math.random().toString(36).slice(2,10);
-    const genICCID=()=>'89'+rDigits(18);
-    const genEID=()=>rHex(32);
-    const genCode=(len=12)=>{const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join('');};
-    const esc=s=>s?String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])):'';
-    let profiles=[],current=null,currentPayload=null;
-    function load(){try{profiles=JSON.parse(localStorage.getItem(STORAGE)||'[]');}catch{profiles=[];}}
-    function persist(){localStorage.setItem(STORAGE,JSON.stringify(profiles));}
-    function renderProfiles(){
-      const el=document.getElementById('profilesList');
-      if(!profiles.length){el.innerHTML='<div class="empty">Aucun profil — générez-en un.</div>';return;}
-      el.innerHTML=profiles.map(p=>`<div class="profile-item"><div><div class="profile-name">${esc(p.name)}</div><div class="profile-sub">${esc(p.operator)} · <span class="badge-plan">${esc(p.planType)}</span></div></div><div class="profile-actions">
-        <button class="icon-btn" data-show="${p.id}" title="Afficher"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg></button>
-        <button class="icon-btn" data-dl="${p.id}" title="Télécharger"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
-        <button class="icon-btn danger" data-del="${p.id}" title="Supprimer"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
-        </div></div>`).join('');
-      el.querySelectorAll('[data-show]').forEach(b=>b.addEventListener('click',()=>showProfile(b.dataset.show)));
-      el.querySelectorAll('[data-dl]').forEach(b=>b.addEventListener('click',()=>dlProfile(b.dataset.dl)));
-      el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>delProfile(b.dataset.del)));
+  <div id="toast" class="toast"></div>
+
+  <!-- Firebase SDK -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getDatabase, ref, push, onValue, set, get, off, onDisconnect, serverTimestamp, query, orderByChild, limitToLast } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+    import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "YOUR_API_KEY",  // ← Remplacer par votre clé
+      authDomain: "messagerie-cd2ba.firebaseapp.com",
+      databaseURL: "https://messagerie-cd2ba-default-rtdb.firebaseio.com",
+      projectId: "messagerie-cd2ba",
+      storageBucket: "messagerie-cd2ba.appspot.com",
+      messagingSenderId: "846140280738",
+      appId: "YOUR_APP_ID"  // ← Remplacer par votre App ID
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const auth = getAuth(app);
+
+    // ─── STATE ──────────────────────────────────────────────────
+    const KEY = "virtual_sim_comms_v2";
+    let state = { contacts:[], selectedContactId:null, activeSimId:null, recipientContactId:null, recipientSimId:null };
+    let firebaseMessages = [];
+    let currentListener = null;
+    let currentListenerRef = null;
+    let fbConnected = false;
+    let currentUser = null;
+
+    // ─── HELPERS ─────────────────────────────────────────────────
+    const uid = p => p + "_" + Math.random().toString(36).slice(2,9);
+    const esc = s => s ? String(s).replace(/[&<>"']/g, m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])) : '';
+    const initials = n => (n||'?').trim().split(/\s+/).map(w=>w[0]?.toUpperCase()||'').slice(0,2).join('') || '?';
+    function showToast(msg) {
+      const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show');
+      setTimeout(() => t.classList.remove('show'), 2500);
     }
-    function showProfile(id){const p=profiles.find(x=>x.id===id);if(p)renderGenerated(p);}
-    function dlProfile(id){const p=profiles.find(x=>x.id===id);if(!p)return;const b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(p.name||'esim')+'.json';a.click();URL.revokeObjectURL(a.href);}
-    function delProfile(id){if(!confirm('Supprimer ce profil ?'))return;profiles=profiles.filter(x=>x.id!==id);persist();renderProfiles();if(current?.id===id){document.getElementById('generatedCard').innerHTML='<div class="empty">Aucun profil.</div>';document.getElementById('qr').innerHTML='';document.getElementById('exportActions').style.display='none';current=null;currentPayload=null;}}
-    function renderGenerated(p){
-      current=p;
-      document.getElementById('generatedCard').innerHTML=`<div class="preview-card"><div class="preview-name">${esc(p.name)}</div>${[['Opérateur',p.operator],['ICCID',p.iccid],['EID',p.eid],['Activation',p.activationCode],['SM‑DP+',p.smDp],['Plan',p.planType],['Validité',p.validityDays+' j']].map(([k,v])=>`<div class="preview-row"><span class="preview-key">${k}</span><span class="preview-val">${esc(String(v))}</span></div>`).join('')}</div>`;
-      const qrEl=document.getElementById('qr');qrEl.innerHTML='';
-      currentPayload=JSON.stringify({iccid:p.iccid,eid:p.eid,activationCode:p.activationCode,smDp:p.smDp,profileName:p.name,operator:p.operator});
-      try{new QRCode(qrEl,{text:currentPayload,width:180,height:180,colorDark:'#212529',colorLight:'#ffffff'});}
-      catch{qrEl.textContent=currentPayload;}
-      document.getElementById('exportActions').style.display='flex';
+
+    function save() { localStorage.setItem(KEY, JSON.stringify({ contacts: state.contacts })); }
+    function load() {
+      const r = localStorage.getItem(KEY);
+      if (!r) return;
+      try { const p = JSON.parse(r); state.contacts = p.contacts || []; } catch(e) {}
     }
-    function importFromParsed(parsed){
-      let list=Array.isArray(parsed)?parsed:parsed?.id?[parsed]:Array.isArray(parsed?.profiles)?parsed.profiles:null;
-      if(!list)return false;
-      list.forEach(p=>{if(!profiles.find(x=>x.id===p.id))profiles.push(p);});
-      persist();renderProfiles();return true;
+    function getAllSims() {
+      let l = [];
+      state.contacts.forEach(c => (c.sims||[]).forEach(s => l.push({contactId:c.id, contactName:c.name, sim:s})));
+      return l;
     }
-    document.addEventListener('DOMContentLoaded',()=>{
-      load();renderProfiles();
-      document.getElementById('generateBtn').addEventListener('click',()=>{
-        const name=document.getElementById('profileName').value.trim()||('Profil_'+(profiles.length+1));
-        const operator=document.getElementById('operator').value.trim()||'ExampleOperator';
-        const p={id:uid('esim'),name,operator,planType:document.getElementById('planType').value,validityDays:parseInt(document.getElementById('validityDays').value)||30,smDp:document.getElementById('smDp').value.trim()||'sm-dp.example.com',iccid:genICCID(),eid:genEID(),activationCode:genCode(parseInt(document.getElementById('activationLen').value)||12),createdAt:new Date().toISOString()};
-        profiles.push(p);persist();renderProfiles();renderGenerated(p);
-      });
-      document.getElementById('downloadJSON').addEventListener('click',()=>{if(current)dlProfile(current.id);});
-      document.getElementById('copyPayload').addEventListener('click',()=>{if(!currentPayload)return alert('Rien à copier');navigator.clipboard?.writeText(currentPayload).then(()=>alert('Copié !')).catch(()=>alert('Copie échouée'));});
-      document.getElementById('downloadQR').addEventListener('click',()=>{const qr=document.getElementById('qr');const img=qr.querySelector('img'),canvas=qr.querySelector('canvas');const src=img?.src||(canvas?canvas.toDataURL('image/png'):null);if(!src){alert('QR non disponible');return;}const a=document.createElement('a');a.href=src;a.download=(current?.name||'esim')+'-qr.png';a.click();});
-      document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
-      document.getElementById('importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{if(!importFromParsed(JSON.parse(ev.target.result)))alert('Aucun profil trouvé');}catch{alert('JSON invalide');}};r.readAsText(f);e.target.value='';});
-      const dz=document.getElementById('dropZone');
-      dz.addEventListener('click',()=>document.getElementById('importFile').click());
-      dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
-      dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
-      dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');Array.from(e.dataTransfer.files).filter(f=>f.name.endsWith('.json')||f.type.includes('json')).forEach(f=>{const r=new FileReader();r.onload=ev=>{try{if(!importFromParsed(JSON.parse(ev.target.result)))alert('Aucun profil trouvé');}catch{alert('JSON invalide');}};r.readAsText(f);});});
+    function findSimById(id) {
+      for (const c of state.contacts) for (const s of (c.sims||[])) if (s.id === id) return {contact:c, sim:s, contactName:c.name};
+      return null;
+    }
+
+    // ─── CRYPTO ──────────────────────────────────────────────────
+    const ab2b64 = b => { let s=""; const u=new Uint8Array(b); for(let i=0;i<u.length;i+=0x8000) s+=String.fromCharCode.apply(null,u.subarray(i,i+0x8000)); return btoa(s); };
+    const b642ab = b => { const bin=atob(b), u=new Uint8Array(bin.length); for(let i=0;i<bin.length;i++) u[i]=bin.charCodeAt(i); return u.buffer; };
+    const genKP = () => crypto.subtle.generateKey({name:"ECDH",namedCurve:"P-256"},true,["deriveKey","deriveBits"]);
+    const impPub = j => crypto.subtle.importKey("jwk",j,{name:"ECDH",namedCurve:"P-256"},false,[]);
+    const impPriv = j => crypto.subtle.importKey("jwk",j,{name:"ECDH",namedCurve:"P-256"},false,["deriveBits","deriveKey"]);
+    async function deriveKey(priv, pub, salt) {
+      const bits = await crypto.subtle.deriveBits({name:"ECDH",public:pub}, priv, 256);
+      const base = await crypto.subtle.importKey("raw", bits, {name:"HKDF"}, false, ["deriveKey"]);
+      return crypto.subtle.deriveKey({name:"HKDF",hash:"SHA-256",salt,info:new Uint8Array([])}, base, {name:"AES-GCM",length:256}, false, ["encrypt","decrypt"]);
+    }
+    async function encMsg(txt, fs, ts) {
+      const priv=await impPriv(fs.privKey), pub=await impPub(ts.pubKey);
+      const salt=crypto.getRandomValues(new Uint8Array(16)), iv=crypto.getRandomValues(new Uint8Array(12));
+      const key=await deriveKey(priv,pub,salt.buffer);
+      const ct=await crypto.subtle.encrypt({name:"AES-GCM",iv},key,new TextEncoder().encode(txt));
+      return {ciphertext:ab2b64(ct), iv:ab2b64(iv.buffer), salt:ab2b64(salt.buffer)};
+    }
+    async function decMsg(msg, simId) {
+      const own=findSimById(simId); if(!own?.sim?.privKey) throw new Error("no key");
+      const otherId=msg.from===simId?msg.to:msg.from;
+      const other=findSimById(otherId); if(!other?.sim?.pubKey) throw new Error("no pub");
+      const priv=await impPriv(own.sim.privKey), pub=await impPub(other.sim.pubKey);
+      const key=await deriveKey(priv,pub,b642ab(msg.salt));
+      const plain=await crypto.subtle.decrypt({name:"AES-GCM",iv:new Uint8Array(b642ab(msg.iv))},key,b642ab(msg.ciphertext));
+      return new TextDecoder().decode(plain);
+    }
+
+    // ─── FIREBASE AUTH ────────────────────────────────────────────
+    function updateFbStatus(status) {
+      const dot = document.getElementById('fbDot'), label = document.getElementById('fbLabel');
+      dot.className = 'fb-dot ' + status;
+      label.textContent = status === 'connected' ? 'En ligne' : status === 'error' ? 'Erreur' : 'Connexion…';
+    }
+
+    signInAnonymously(auth).catch(e => {
+      console.error('Auth error:', e);
+      updateFbStatus('error');
     });
-  })();
+
+    onAuthStateChanged(auth, user => {
+      if (user) {
+        currentUser = user;
+        updateFbStatus('connected');
+        fbConnected = true;
+        // Monitor connection
+        onValue(ref(db, '.info/connected'), snap => {
+          updateFbStatus(snap.val() ? 'connected' : 'loading');
+        });
+      }
+    });
+
+    // ─── FIREBASE CHAT ────────────────────────────────────────────
+    function getChatKey(fromId, toId) {
+      return [fromId, toId].sort().join('__');
+    }
+
+    function subscribeToChat(fromId, toId) {
+      // Unsubscribe previous
+      if (currentListenerRef && currentListener) {
+        off(currentListenerRef, 'value', currentListener);
+        currentListenerRef = null; currentListener = null;
+      }
+      firebaseMessages = [];
+      const chatKey = getChatKey(fromId, toId);
+      const msgsRef = query(ref(db, 'chats/' + chatKey + '/messages'), orderByChild('ts'), limitToLast(200));
+      currentListenerRef = msgsRef;
+      currentListener = onValue(msgsRef, snap => {
+        firebaseMessages = [];
+        snap.forEach(child => { firebaseMessages.push({id:child.key, ...child.val()}); });
+        renderChat();
+      });
+    }
+
+    async function sendToFirebase(msgData, fromId, toId) {
+      const chatKey = getChatKey(fromId, toId);
+      const msgsRef = ref(db, 'chats/' + chatKey + '/messages');
+      await push(msgsRef, { ...msgData, fbTs: serverTimestamp() });
+    }
+
+    // ─── RENDER ───────────────────────────────────────────────────
+    function renderContacts() {
+      const el = document.getElementById('contactsList');
+      el.innerHTML = '';
+      if (!state.contacts.length) {
+        el.innerHTML = '<div class="no-contacts">Aucun contact.<br>Ajoutez-en un ci-dessus.</div>';
+        return;
+      }
+      state.contacts.forEach(c => {
+        const li = document.createElement('li');
+        li.className = 'contact-item' + (state.selectedContactId===c.id?' selected':'');
+        li.innerHTML = `<div class="contact-avatar">${esc(initials(c.name))}</div><div class="contact-info"><div class="contact-name">${esc(c.name)}</div><div class="contact-meta">${esc(c.email||'')}</div></div><span class="sim-count">${(c.sims||[]).length}</span>`;
+        li.addEventListener('click', () => selectContact(c.id));
+        el.appendChild(li);
+      });
+    }
+
+    function renderSims() {
+      const h = document.getElementById('simsForContactHeader'), ctrl = document.getElementById('simsControls'), list = document.getElementById('simsList');
+      list.innerHTML = '';
+      const c = state.contacts.find(x => x.id === state.selectedContactId);
+      if (!c) { h.textContent = 'Sélectionner un contact'; ctrl.style.display = 'none'; return; }
+      h.textContent = 'SIMs de ' + c.name; ctrl.style.display = 'block';
+      if (!(c.sims||[]).length) { list.innerHTML = '<div style="font-size:12px;color:var(--muted);padding:12px;text-align:center">Aucun SIM</div>'; return; }
+      (c.sims||[]).forEach(s => {
+        const d = document.createElement('div'); d.className = 'sim-card';
+        d.innerHTML = `<div><div class="sim-label">${esc(s.label||'SIM')}</div><div class="sim-number">${esc(s.number)}</div></div><div style="display:flex;gap:4px">
+          <button class="icon-btn" data-sel="${s.id}" title="Utiliser comme destinataire"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></button>
+          <button class="icon-btn danger" data-del="${s.id}" title="Supprimer"><svg width="11" height="11" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button></div>`;
+        list.appendChild(d);
+        d.querySelector('[data-sel]').addEventListener('click', () => { state.recipientSimId=s.id; state.recipientContactId=c.id; renderRecipientContactSelect(); renderRecipientSelect(); subscribeIfReady(); renderStatus(); });
+        d.querySelector('[data-del]').addEventListener('click', () => {
+          if (!confirm('Supprimer ce SIM ?')) return;
+          c.sims=(c.sims||[]).filter(x=>x.id!==s.id);
+          if(state.activeSimId===s.id) state.activeSimId=null;
+          if(state.recipientSimId===s.id) state.recipientSimId=null;
+          save(); renderAll();
+        });
+      });
+    }
+
+    function renderActiveSimSelect() {
+      const sel = document.getElementById('activeSimSelect');
+      const prev = sel.value;
+      sel.innerHTML = '<option value="">— SIM actif (vous) —</option>';
+      getAllSims().forEach(e => {
+        const o = document.createElement('option'); o.value = e.sim.id;
+        o.textContent = e.contactName + ' — ' + e.sim.label; sel.appendChild(o);
+      });
+      sel.value = state.activeSimId || prev || '';
+      sel.onchange = e => { state.activeSimId = e.target.value||null; save(); subscribeIfReady(); renderStatus(); renderSendBtn(); };
+    }
+
+    function renderRecipientContactSelect() {
+      const sel = document.getElementById('recipientContactSelect');
+      sel.innerHTML = '<option value="">— Destinataire —</option>';
+      state.contacts.forEach(c => {
+        const o = document.createElement('option'); o.value = c.id; o.textContent = c.name; sel.appendChild(o);
+      });
+      sel.value = state.recipientContactId || '';
+      sel.onchange = e => {
+        state.recipientContactId = e.target.value||null;
+        if (state.recipientContactId) {
+          const c = state.contacts.find(x=>x.id===state.recipientContactId);
+          state.recipientSimId = c&&(c.sims||[]).length ? c.sims[0].id : null;
+          document.getElementById('peerAvatar').textContent = initials(c?.name||'?');
+        }
+        renderRecipientSelect(); subscribeIfReady(); renderStatus();
+      };
+      // Update avatar
+      if (state.recipientContactId) {
+        const c = state.contacts.find(x=>x.id===state.recipientContactId);
+        document.getElementById('peerAvatar').textContent = initials(c?.name||'?');
+      }
+    }
+
+    function renderRecipientSelect() {
+      const sel = document.getElementById('recipientSimSelect');
+      sel.innerHTML = '<option value="">— SIM dest. —</option>';
+      let sims = [];
+      if (state.recipientContactId) {
+        const c = state.contacts.find(x=>x.id===state.recipientContactId);
+        if (c) sims = (c.sims||[]).map(s=>({contactId:c.id, contactName:c.name, sim:s}));
+      } else sims = getAllSims();
+      sims.forEach(e => {
+        const o = document.createElement('option'); o.value = e.sim.id;
+        o.textContent = e.contactName + ' — ' + e.sim.label; sel.appendChild(o);
+      });
+      sel.value = state.recipientSimId || '';
+      sel.onchange = e => { state.recipientSimId = e.target.value||null; subscribeIfReady(); renderStatus(); };
+    }
+
+    function subscribeIfReady() {
+      const from = state.activeSimId;
+      let to = state.recipientSimId;
+      if (!to && state.recipientContactId) {
+        const c = state.contacts.find(x=>x.id===state.recipientContactId);
+        if (c&&(c.sims||[]).length) to = c.sims[0].id;
+      }
+      if (from && to && fbConnected) {
+        subscribeToChat(from, to);
+      } else {
+        firebaseMessages = [];
+        renderChat();
+      }
+      renderSendBtn();
+    }
+
+    function renderSendBtn() {
+      const from = state.activeSimId;
+      let to = state.recipientSimId;
+      if (!to && state.recipientContactId) {
+        const c = state.contacts.find(x=>x.id===state.recipientContactId);
+        if (c&&(c.sims||[]).length) to = c.sims[0].id;
+      }
+      document.getElementById('sendBtn').disabled = !(from && to);
+    }
+
+    function renderChat() {
+      const log = document.getElementById('chatLog');
+      const from = state.activeSimId;
+      let to = state.recipientSimId;
+      if (!to && state.recipientContactId) {
+        const c = state.contacts.find(x=>x.id===state.recipientContactId);
+        if (c&&(c.sims||[]).length) to = c.sims[0].id;
+      }
+      if (!from || !to) {
+        log.innerHTML = '<div class="empty-chat"><div class="empty-icon">💬</div>Sélectionnez un SIM actif et un destinataire pour commencer.</div>';
+        return;
+      }
+      if (!firebaseMessages.length) {
+        log.innerHTML = '<div class="empty-chat"><div class="empty-icon">✉️</div>Aucun message. Dites bonjour !</div>';
+        return;
+      }
+
+      log.innerHTML = '';
+      let lastDate = '';
+      firebaseMessages.forEach(m => {
+        // Date separator
+        const date = new Date(m.ts).toLocaleDateString('fr-FR', {day:'numeric',month:'long'});
+        if (date !== lastDate) {
+          lastDate = date;
+          const sep = document.createElement('div'); sep.className='date-sep';
+          sep.innerHTML = `<span>${esc(date)}</span>`; log.appendChild(sep);
+        }
+        const isOut = m.from === from;
+        const group = document.createElement('div'); group.className = 'msg-group ' + (isOut?'out':'in');
+        const d = document.createElement('div'); d.className = 'msg ' + (isOut?'out':'in');
+        const time = new Date(m.ts).toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+        if (m.enc) {
+          d.innerHTML = `<div class="msg-enc">🔒 Déchiffrement…</div><div class="msg-time">${time}</div>`;
+          decMsg(m, state.activeSimId).then(p => {
+            d.innerHTML = `<div>${esc(p)}</div><div class="msg-time">${time} ${isOut?'<span class="msg-status">✓✓</span>':''}</div>`;
+          }).catch(() => {
+            d.innerHTML = `<div class="msg-enc">🔒 Impossible de déchiffrer</div><div class="msg-time">${time}</div>`;
+          });
+        } else {
+          d.innerHTML = `<div>${esc(m.text)}</div><div class="msg-time">${time} ${isOut?'<span class="msg-status">✓✓</span>':''}</div>`;
+        }
+        group.appendChild(d); log.appendChild(group);
+      });
+      log.scrollTop = log.scrollHeight;
+    }
+
+    function renderStatus() {
+      const s = document.getElementById('statusInfo');
+      if (!state.activeSimId) { s.textContent='Aucun SIM actif'; return; }
+      const a = findSimById(state.activeSimId), r = state.recipientSimId ? findSimById(state.recipientSimId) : null;
+      s.textContent = 'SIM: ' + (a?a.contactName+' — '+a.sim.label:'Inconnu') + (r?' · Avec: '+r.contactName+' — '+r.sim.label:'');
+    }
+
+    function renderAll() {
+      renderContacts(); renderSims(); renderActiveSimSelect();
+      renderRecipientContactSelect(); renderRecipientSelect(); renderStatus(); renderSendBtn();
+    }
+
+    // ─── ACTIONS ──────────────────────────────────────────────────
+    function addContact(name, email) {
+      const id = uid('c'); state.contacts.push({id,name,email,sims:[]}); save(); renderAll(); selectContact(id);
+    }
+
+    async function addSim(cid, label, number) {
+      const c = state.contacts.find(x=>x.id===cid); if(!c) return;
+      const id = uid('s');
+      const num = number&&String(number).trim() ? String(number).trim() : Math.floor(1e11+Math.random()*9e11).toString();
+      try {
+        const kp = await genKP();
+        const pub = await crypto.subtle.exportKey("jwk", kp.publicKey);
+        const priv = await crypto.subtle.exportKey("jwk", kp.privateKey);
+        c.sims = c.sims||[]; c.sims.push({id,label:label||'SIM',number:num,pubKey:pub,privKey:priv});
+      } catch { c.sims=c.sims||[]; c.sims.push({id,label:label||'SIM',number:num}); }
+      save(); renderAll();
+    }
+
+    async function sendMessage(txt, from, to) {
+      if (!txt||!from||!to) return;
+      const fe=findSimById(from), te=findSimById(to);
+      let msgData;
+      if (fe?.sim?.privKey && te?.sim?.pubKey) {
+        try {
+          const enc = await encMsg(txt, fe.sim, te.sim);
+          msgData = {from, to, enc:true, ...enc, ts:Date.now()};
+        } catch(e) { console.error(e); msgData = {from, to, text:txt, ts:Date.now()}; }
+      } else {
+        msgData = {from, to, text:txt, ts:Date.now()};
+      }
+      if (fbConnected) {
+        await sendToFirebase(msgData, from, to);
+      } else {
+        showToast('Firebase non connecté, message local uniquement');
+        firebaseMessages.push({id:uid('m'), ...msgData});
+        renderChat();
+      }
+    }
+
+    function selectContact(id) { state.selectedContactId=id; renderContacts(); renderSims(); }
+
+    function exportJSON() {
+      const b=new Blob([JSON.stringify({contacts:state.contacts,messages:firebaseMessages},null,2)],{type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(b); a.download='virtual_sim_export.json'; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    function importJSON(file) {
+      const r=new FileReader(); r.onload=e=>{
+        try { const p=JSON.parse(e.target.result); if(Array.isArray(p.contacts)) state.contacts=p.contacts; save(); renderAll(); showToast('Importé !'); } catch { alert('JSON invalide'); }
+      }; r.readAsText(file);
+    }
+
+    async function importEsim(file) {
+      const r=new FileReader(); r.onload=async e=>{
+        try {
+          const p=JSON.parse(e.target.result);
+          let profiles=Array.isArray(p)?p:(p&&(p.iccid||p.eid||p.activationCode||p.profileName||p.operator))?[p]:Array.isArray(p?.profiles)?p.profiles:[];
+          if(!profiles.length){alert("Aucun profil eSIM trouvé");return;}
+          const attach=!!state.selectedContactId&&confirm("Ajouter au contact sélectionné ?");
+          for(const prof of profiles){
+            const label=prof.profileName||prof.operator||'eSIM';
+            const num=prof.iccid||prof.activationCode||prof.eid||Math.floor(1e11+Math.random()*9e11).toString();
+            if(attach){const c=state.contacts.find(x=>x.id===state.selectedContactId);if(c)await addSim(c.id,label,num);}
+            else{const cid=uid('c');state.contacts.push({id:cid,name:prof.profileName||prof.operator||('eSIM '+num.slice(-6)),email:'',sims:[]});await addSim(cid,label,num);}
+          }
+          save();renderAll();showToast('eSIM importé !');
+        }catch(err){console.error(err);alert('JSON invalide');}
+      }; r.readAsText(file);
+    }
+
+    // ─── EVENT LISTENERS ──────────────────────────────────────────
+    document.addEventListener('DOMContentLoaded', () => {
+      load(); renderAll();
+
+      // Auto-resize textarea
+      const ta = document.getElementById('messageInput');
+      ta.addEventListener('input', () => { ta.style.height='auto'; ta.style.height=Math.min(ta.scrollHeight,120)+'px'; renderSendBtn(); if(!ta.value.trim()) document.getElementById('sendBtn').disabled=!(state.activeSimId&&state.recipientSimId); });
+
+      document.getElementById('addContactBtn').addEventListener('click', () => {
+        const n=document.getElementById('contactName').value.trim(), e=document.getElementById('contactEmail').value.trim();
+        if(!n) return alert('Entrez un nom'); addContact(n,e);
+        document.getElementById('contactName').value=''; document.getElementById('contactEmail').value='';
+        showToast('Contact ajouté !');
+      });
+
+      document.getElementById('addSimBtn').addEventListener('click', async () => {
+        const l=document.getElementById('simLabel').value.trim(), n=document.getElementById('simNumber').value.trim();
+        if(!state.selectedContactId) return alert('Sélectionnez un contact d\'abord');
+        await addSim(state.selectedContactId,l,n);
+        document.getElementById('simLabel').value=''; document.getElementById('simNumber').value='';
+        showToast('SIM ajouté !');
+      });
+
+      document.getElementById('sendBtn').addEventListener('click', async () => {
+        const txt=ta.value.trim(); if(!txt) return;
+        if(!state.activeSimId) return alert('Sélectionnez un SIM actif');
+        let to=state.recipientSimId;
+        if(!to&&state.recipientContactId){const c=state.contacts.find(x=>x.id===state.recipientContactId);if(!c||(c.sims||[]).length===0)return alert('Aucun SIM pour ce contact');to=c.sims[0].id;}
+        if(!to) return alert('Sélectionnez un destinataire');
+        ta.value=''; ta.style.height='auto';
+        try { await sendMessage(txt,state.activeSimId,to); } catch(err) { console.error(err); showToast('Erreur d\'envoi'); }
+      });
+
+      ta.addEventListener('keydown', e => { if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();document.getElementById('sendBtn').click();} });
+
+      document.getElementById('exportBtn').addEventListener('click', exportJSON);
+      document.getElementById('downloadDump').addEventListener('click', exportJSON);
+      document.getElementById('clearBtn').addEventListener('click', () => { if(!confirm('Effacer tous les contacts ?')) return; state.contacts=[]; state.activeSimId=null; state.recipientSimId=null; state.selectedContactId=null; save(); renderAll(); showToast('Effacé !'); });
+      document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
+      document.getElementById('importFile').addEventListener('change', e => { const f=e.target.files[0]; if(f)importJSON(f); e.target.value=''; });
+      document.getElementById('importEsimBtn').addEventListener('click', () => document.getElementById('importEsimFile').click());
+      document.getElementById('importEsimFile').addEventListener('change', e => { const f=e.target.files[0]; if(f)importEsim(f); e.target.value=''; });
+
+      if(state.contacts.length&&!state.selectedContactId) state.selectedContactId=state.contacts[0].id;
+      if(!state.activeSimId){const sims=getAllSims();if(sims.length)state.activeSimId=sims[0].sim.id;}
+      renderAll(); subscribeIfReady();
+    });
   </script>
 </body>
 </html>
