@@ -1,97 +1,75 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Listing — Virtual SIM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    /* Réutilisation de tes variables CSS pour la cohérence */
-    :root {
-      --bg: #f8fafc; --card: #ffffff; --accent: #2563eb; --accent-light: #eff6ff;
-      --muted: #64748b; --border: #e2e8f0; --text: #0f172a; --text-secondary: #475569;
-      --radius: 12px; --radius-sm: 8px; --shadow: 0 1px 3px rgba(0,0,0,0.06);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; --accent-light: #1e3a5f;
-        --muted: #94a3b8; --border: #334155; --text: #f1f5f9; --text-secondary: #94a3b8;
-      }
-    }
-    body { font-family: Inter, system-ui, sans-serif; background: var(--bg); color: var(--text); margin: 0; }
-    nav { display: flex; align-items: center; justify-content: space-between; padding: 0 24px; height: 60px; background: var(--card); border-bottom: 1px solid var(--border); }
-    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); font-weight: 600; }
-    .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; }
-    .container { max-width: 1000px; margin: 40px auto; padding: 0 24px; }
-    
-    /* Stats Cards */
-    .stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; margin-bottom: 32px; }
-    .stat-card { background: var(--card); border: 1px solid var(--border); padding: 20px; border-radius: var(--radius); }
-    .stat-val { font-size: 24px; font-weight: 700; color: var(--accent); }
-    .stat-label { font-size: 12px; color: var(--muted); text-transform: uppercase; margin-top: 4px; }
-
-    /* Table Styling */
-    .table-wrapper { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; box-shadow: var(--shadow); }
-    table { width: 100%; border-collapse: collapse; text-align: left; font-size: 14px; }
-    th { padding: 12px 16px; background: var(--bg); color: var(--muted); font-weight: 600; font-size: 12px; border-bottom: 1px solid var(--border); }
-    td { padding: 16px; border-bottom: 1px solid var(--border); }
-    .mono { font-family: monospace; color: var(--muted); font-size: 12px; }
-    .badge { padding: 4px 8px; border-radius: 6px; background: var(--accent-light); color: var(--accent); font-size: 11px; font-weight: 600; }
-    .empty { padding: 60px; text-align: center; color: var(--muted); }
+    :root{--bg:#f0f2f5;--card:#fff;--accent:#0d6efd;--accent-light:#e8f0fe;--muted:#6c757d;--border:#dee2e6;--text:#212529;--text-secondary:#6c757d;--radius:14px;--shadow:0 2px 8px rgba(0,0,0,0.08)}
+    @media(prefers-color-scheme:dark){:root{--bg:#0f1117;--card:#1a1d26;--accent:#4d8ef7;--accent-light:#1a2540;--muted:#8b949e;--border:#30363d;--text:#e6edf3;--text-secondary:#8b949e}}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+    .logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text)}
+    .logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-text{font-size:15px;font-weight:600;letter-spacing:-0.02em}
+    .nav-links{display:flex;gap:6px}
+    .nav-link{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;text-decoration:none;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all 0.15s;border:1px solid transparent}
+    .nav-link:hover,.nav-link.active{background:var(--accent-light);color:var(--accent);border-color:rgba(13,110,253,0.2)}
+    .container{max-width:960px;margin:0 auto;padding:32px 24px}
+    .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:28px}
+    .stat-card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow)}
+    .stat-val{font-size:26px;font-weight:600;color:var(--accent)}
+    .stat-label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-top:4px}
+    .table-wrapper{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow)}
+    table{width:100%;border-collapse:collapse;font-size:13px}
+    th{padding:11px 16px;background:var(--bg);color:var(--muted);font-weight:600;font-size:11px;text-transform:uppercase;letter-spacing:0.05em;border-bottom:1px solid var(--border)}
+    td{padding:14px 16px;border-bottom:1px solid var(--border)}
+    tr:last-child td{border-bottom:none}
+    tr:hover td{background:var(--accent-light)}
+    .mono{font-family:'DM Mono',monospace;color:var(--muted);font-size:11px}
+    .badge{padding:3px 8px;border-radius:6px;background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:500}
+    .empty{padding:60px;text-align:center;color:var(--muted);font-size:13px}
+    .active-badge{color:#22c55e;font-size:12px;display:flex;align-items:center;gap:4px}
   </style>
 </head>
 <body>
   <nav>
-    <a href="index.html" class="logo"><div class="logo-icon"></div><span>Virtual SIM</span></a>
-    <div style="display:flex; gap:10px;">
-      <a href="esim.html" style="text-decoration:none; color:var(--text-secondary); font-size:14px;">Generator</a>
-      <a href="list.html" style="text-decoration:none; color:var(--accent); font-size:14px; font-weight:600;">Listing</a>
+    <a href="index.html" class="logo">
+      <div class="logo-icon"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
+      <span class="logo-text">Virtual SIM</span>
+    </a>
+    <div class="nav-links">
+      <a href="esim.html" class="nav-link">Générateur</a>
+      <a href="list.html" class="nav-link active">Listing</a>
+      <a href="index.html" class="nav-link">Chat</a>
     </div>
   </nav>
-
   <main class="container">
     <div class="stats">
-      <div class="stat-card"><div id="total-sim" class="stat-val">0</div><div class="stat-label">eSIMs Active</div></div>
-      <div class="stat-card"><div id="operators-count" class="stat-val">0</div><div class="stat-label">Operators</div></div>
+      <div class="stat-card"><div id="total-sim" class="stat-val">0</div><div class="stat-label">eSIMs Actifs</div></div>
+      <div class="stat-card"><div id="operators-count" class="stat-val">0</div><div class="stat-label">Opérateurs</div></div>
+      <div class="stat-card"><div id="contacts-count" class="stat-val">0</div><div class="stat-label">Contacts</div></div>
     </div>
-
     <div class="table-wrapper">
       <table id="sim-table">
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Operator</th>
-            <th>ICCID</th>
-            <th>Plan</th>
-            <th>Status</th>
-          </tr>
-        </thead>
+        <thead><tr><th>Nom</th><th>Opérateur</th><th>ICCID</th><th>Plan</th><th>Statut</th></tr></thead>
         <tbody id="sim-list"></tbody>
       </table>
-      <div id="no-data" class="empty" style="display:none;">No profiles found in local storage.</div>
+      <div id="no-data" class="empty" style="display:none">Aucun profil trouvé dans le stockage local.</div>
     </div>
   </main>
-
   <script>
-    const profiles = JSON.parse(localStorage.getItem('esim_profiles_v1') || '[]');
-    const list = document.getElementById('sim-list');
-    
-    document.getElementById('total-sim').textContent = profiles.length;
-    document.getElementById('operators-count').textContent = new Set(profiles.map(p => p.operator)).size;
-
-    if (profiles.length === 0) {
-      document.getElementById('sim-table').style.display = 'none';
-      document.getElementById('no-data').style.display = 'block';
-    } else {
-      list.innerHTML = profiles.map(p => `
-        <tr>
-          <td><strong>${p.name}</strong></td>
-          <td>${p.operator}</td>
-          <td class="mono">${p.iccid}</td>
-          <td><span class="badge">${p.planType}</span></td>
-          <td><span style="color:#16a34a">● Active</span></td>
-        </tr>
-      `).join('');
-    }
+    const profiles=JSON.parse(localStorage.getItem('esim_profiles_v1')||'[]');
+    const contacts=JSON.parse(localStorage.getItem('virtual_sim_comms_v2')||'{}')?.contacts||[];
+    const esc=s=>s?String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])):'';
+    document.getElementById('total-sim').textContent=profiles.length;
+    document.getElementById('operators-count').textContent=new Set(profiles.map(p=>p.operator)).size;
+    document.getElementById('contacts-count').textContent=contacts.length;
+    if(!profiles.length){document.getElementById('sim-table').style.display='none';document.getElementById('no-data').style.display='block';}
+    else{document.getElementById('sim-list').innerHTML=profiles.map(p=>`<tr><td><strong>${esc(p.name)}</strong></td><td>${esc(p.operator)}</td><td class="mono">${esc(p.iccid)}</td><td><span class="badge">${esc(p.planType)}</span></td><td><span class="active-badge"><svg width="8" height="8" fill="currentColor" viewBox="0 0 8 8"><circle cx="4" cy="4" r="4"/></svg> Actif</span></td></tr>`).join('');}
   </script>
 </body>
 </html>
