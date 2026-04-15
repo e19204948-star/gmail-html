@@ -1,147 +1,72 @@
 <!doctype html>
-<html lang="en">
+<html lang="fr">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>eSIM Generator — Virtual SIM</title>
+  <title>Générateur eSIM — Virtual SIM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <style>
-    :root {
-      --bg: #f8fafc;
-      --card: #ffffff;
-      --accent: #2563eb;
-      --accent-light: #eff6ff;
-      --accent-hover: #1d4ed8;
-      --muted: #64748b;
-      --border: #e2e8f0;
-      --text: #0f172a;
-      --text-secondary: #475569;
-      --danger: #ef4444;
-      --danger-bg: #fef2f2;
-      --success: #16a34a;
-      --success-bg: #f0fdf4;
-      --radius: 12px;
-      --radius-sm: 8px;
-      --shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --bg: #0f172a; --card: #1e293b; --accent: #3b82f6; --accent-light: #1e3a5f;
-        --accent-hover: #60a5fa; --muted: #94a3b8; --border: #334155;
-        --text: #f1f5f9; --text-secondary: #94a3b8;
-        --danger: #f87171; --danger-bg: #450a0a;
-        --success: #4ade80; --success-bg: #052e16;
-      }
-    }
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    body { font-family: Inter, system-ui, -apple-system, sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
-
-    nav {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 24px; height: 60px;
-      background: var(--card); border-bottom: 1px solid var(--border);
-      position: sticky; top: 0; z-index: 10;
-    }
-    .logo { display: flex; align-items: center; gap: 10px; text-decoration: none; color: var(--text); }
-    .logo-icon { width: 32px; height: 32px; background: var(--accent); border-radius: 8px; display: flex; align-items: center; justify-content: center; }
-    .logo-text { font-size: 16px; font-weight: 600; letter-spacing: -0.02em; }
-    .nav-links { display: flex; gap: 6px; }
-    .nav-link {
-      display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px;
-      border-radius: var(--radius-sm); text-decoration: none; font-size: 14px; font-weight: 500;
-      color: var(--text-secondary); transition: background 0.15s, color 0.15s; border: 1px solid transparent;
-    }
-    .nav-link:hover { background: var(--accent-light); color: var(--accent); border-color: var(--border); }
-    .nav-link.active { background: var(--accent-light); color: var(--accent); border-color: rgba(37,99,235,0.2); }
-
-    .layout { display: grid; grid-template-columns: 1fr 380px; gap: 20px; max-width: 1100px; margin: 0 auto; padding: 24px; }
-    @media (max-width: 768px) { .layout { grid-template-columns: 1fr; } }
-
-    .card { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); }
-    .card-title { font-size: 15px; font-weight: 600; margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
-    .card-title svg { color: var(--accent); }
-
-    .field-group { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 12px; }
-    .field-group.single { grid-template-columns: 1fr; }
-    label { display: block; font-size: 12px; font-weight: 500; color: var(--text-secondary); margin-bottom: 4px; }
-    input, select {
-      width: 100%; padding: 8px 12px; font-size: 13px;
-      border: 1px solid var(--border); border-radius: var(--radius-sm);
-      background: var(--bg); color: var(--text); transition: border-color 0.15s;
-      font-family: inherit;
-    }
-    input:focus, select:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px rgba(37,99,235,0.1); }
-    input::placeholder { color: var(--muted); }
-
-    .actions { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px;
-      border-radius: var(--radius-sm); font-size: 13px; font-weight: 500;
-      border: 1px solid transparent; cursor: pointer; font-family: inherit; transition: all 0.15s;
-    }
-    .btn-primary { background: var(--accent); color: #fff; }
-    .btn-primary:hover { background: var(--accent-hover); }
-    .btn-secondary { background: transparent; color: var(--accent); border-color: rgba(37,99,235,0.25); }
-    .btn-secondary:hover { background: var(--accent-light); }
-    .btn-ghost { background: transparent; color: var(--text-secondary); border-color: var(--border); }
-    .btn-ghost:hover { background: var(--bg); color: var(--text); }
-
-    .drop-zone {
-      border: 1.5px dashed var(--border); border-radius: var(--radius-sm);
-      padding: 20px; text-align: center; cursor: pointer; margin-top: 12px;
-      transition: all 0.15s; color: var(--muted); font-size: 13px;
-    }
-    .drop-zone:hover, .drop-zone.drag-over { border-color: var(--accent); background: var(--accent-light); color: var(--accent); }
-    .drop-zone svg { margin: 0 auto 8px; display: block; opacity: 0.5; }
-
-    .divider { height: 1px; background: var(--border); margin: 16px 0; }
-
-    .profile-list { display: flex; flex-direction: column; gap: 8px; }
-    .profile-item {
-      display: flex; justify-content: space-between; align-items: center;
-      padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm);
-      background: var(--bg); transition: border-color 0.15s;
-    }
-    .profile-item:hover { border-color: var(--accent); }
-    .profile-item-info { min-width: 0; }
-    .profile-name { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-    .profile-sub { font-size: 11px; color: var(--muted); margin-top: 2px; }
-    .profile-actions { display: flex; gap: 4px; flex-shrink: 0; }
-    .icon-btn {
-      width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--border);
-      background: var(--card); cursor: pointer; display: flex; align-items: center; justify-content: center;
-      color: var(--text-secondary); transition: all 0.15s; font-size: 12px;
-    }
-    .icon-btn:hover { background: var(--accent-light); color: var(--accent); border-color: var(--accent); }
-    .icon-btn.danger:hover { background: var(--danger-bg); color: var(--danger); border-color: var(--danger); }
-
-    .preview-card { background: var(--bg); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 16px; margin-bottom: 16px; }
-    .preview-name { font-size: 16px; font-weight: 600; margin-bottom: 12px; }
-    .preview-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12px; }
-    .preview-row:last-child { border-bottom: none; }
-    .preview-key { color: var(--muted); }
-    .preview-val { font-weight: 500; font-family: 'SF Mono', Consolas, monospace; font-size: 11px; max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-
-    #qr { display: flex; justify-content: center; margin: 16px 0; }
-    #qr canvas, #qr img { border-radius: var(--radius-sm); border: 4px solid var(--card); box-shadow: var(--shadow); }
-
-    .note { background: var(--accent-light); border: 1px solid rgba(37,99,235,0.2); border-radius: var(--radius-sm); padding: 10px 14px; font-size: 12px; color: var(--accent); margin-top: 12px; }
-
-    .empty { color: var(--muted); font-size: 13px; text-align: center; padding: 24px 0; }
-    .section-label { font-size: 11px; font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 12px; }
-    .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500; }
-    .badge-plan { background: var(--accent-light); color: var(--accent); }
+    :root{--bg:#f0f2f5;--card:#fff;--accent:#0d6efd;--accent-light:#e8f0fe;--accent-hover:#0b5ed7;--muted:#6c757d;--border:#dee2e6;--text:#212529;--text-secondary:#6c757d;--success:#22c55e;--success-bg:#f0fdf4;--radius:14px;--radius-sm:9px;--shadow:0 2px 8px rgba(0,0,0,0.08)}
+    @media(prefers-color-scheme:dark){:root{--bg:#0f1117;--card:#1a1d26;--accent:#4d8ef7;--accent-light:#1a2540;--accent-hover:#6ba3f9;--muted:#8b949e;--border:#30363d;--text:#e6edf3;--text-secondary:#8b949e;--success:#4ade80;--success-bg:#0a2e1a}}
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+    nav{display:flex;align-items:center;justify-content:space-between;padding:0 24px;height:56px;background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:10}
+    .logo{display:flex;align-items:center;gap:9px;text-decoration:none;color:var(--text)}
+    .logo-icon{width:30px;height:30px;background:var(--accent);border-radius:8px;display:flex;align-items:center;justify-content:center}
+    .logo-text{font-size:15px;font-weight:600;letter-spacing:-0.02em}
+    .nav-links{display:flex;gap:6px}
+    .nav-link{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:9px;text-decoration:none;font-size:13px;font-weight:500;color:var(--text-secondary);transition:all 0.15s;border:1px solid transparent}
+    .nav-link:hover,.nav-link.active{background:var(--accent-light);color:var(--accent);border-color:rgba(13,110,253,0.2)}
+    .layout{display:grid;grid-template-columns:1fr 360px;gap:20px;max-width:1060px;margin:0 auto;padding:24px}
+    @media(max-width:768px){.layout{grid-template-columns:1fr}}
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin-bottom:20px}
+    .card-title{font-size:14px;font-weight:600;margin-bottom:16px;display:flex;align-items:center;gap:8px;color:var(--text)}
+    .field-group{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+    .field-group.single{grid-template-columns:1fr}
+    label{display:block;font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px}
+    input,select{width:100%;padding:8px 10px;font-size:13px;border:1px solid var(--border);border-radius:9px;background:var(--bg);color:var(--text);font-family:inherit;transition:border-color 0.15s}
+    input:focus,select:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px rgba(13,110,253,0.1)}
+    input::placeholder{color:var(--muted)}
+    .actions{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap}
+    .btn{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:9px;font-size:13px;font-weight:500;border:1px solid transparent;cursor:pointer;font-family:inherit;transition:all 0.15s}
+    .btn-primary{background:var(--accent);color:#fff}.btn-primary:hover{background:var(--accent-hover)}
+    .btn-secondary{background:transparent;color:var(--accent);border-color:rgba(13,110,253,0.3)}.btn-secondary:hover{background:var(--accent-light)}
+    .btn-ghost{background:transparent;color:var(--text-secondary);border-color:var(--border)}.btn-ghost:hover{background:var(--bg);color:var(--text)}
+    .drop-zone{border:1.5px dashed var(--border);border-radius:9px;padding:20px;text-align:center;cursor:pointer;margin-top:12px;transition:all 0.15s;color:var(--muted);font-size:13px}
+    .drop-zone:hover,.drop-zone.drag-over{border-color:var(--accent);background:var(--accent-light);color:var(--accent)}
+    .profile-list{display:flex;flex-direction:column;gap:8px}
+    .profile-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;border:1px solid var(--border);border-radius:9px;background:var(--bg);transition:border-color 0.15s}
+    .profile-item:hover{border-color:var(--accent)}
+    .profile-name{font-size:13px;font-weight:500}
+    .profile-sub{font-size:11px;color:var(--muted);margin-top:2px}
+    .profile-actions{display:flex;gap:4px}
+    .icon-btn{width:28px;height:28px;border-radius:6px;border:1px solid var(--border);background:var(--card);cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--text-secondary);transition:all 0.15s}
+    .icon-btn:hover{background:var(--accent-light);color:var(--accent);border-color:var(--accent)}
+    .icon-btn.danger:hover{background:#fff5f5;color:#dc3545;border-color:#dc3545}
+    @media(prefers-color-scheme:dark){.icon-btn.danger:hover{background:#2d0f0f}}
+    .preview-card{background:var(--bg);border:1px solid var(--border);border-radius:9px;padding:14px;margin-bottom:14px}
+    .preview-name{font-size:16px;font-weight:600;margin-bottom:10px}
+    .preview-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border);font-size:12px}
+    .preview-row:last-child{border-bottom:none}
+    .preview-key{color:var(--muted)}
+    .preview-val{font-weight:500;font-family:'DM Mono',monospace;font-size:11px;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    #qr{display:flex;justify-content:center;margin:14px 0}
+    #qr canvas,#qr img{border-radius:9px;border:4px solid var(--card)}
+    .note{background:var(--accent-light);border:1px solid rgba(13,110,253,0.2);border-radius:9px;padding:10px 14px;font-size:12px;color:var(--accent);margin-top:12px}
+    .empty{color:var(--muted);font-size:13px;text-align:center;padding:24px 0}
+    .section-label{font-size:11px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:0.06em;margin-bottom:12px}
+    .badge-plan{background:var(--accent-light);color:var(--accent);font-size:11px;font-weight:500;padding:2px 7px;border-radius:999px}
   </style>
 </head>
 <body>
   <nav>
     <a href="index.html" class="logo">
-      <div class="logo-icon">
-        <svg width="18" height="18" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-      </div>
+      <div class="logo-icon"><svg width="16" height="16" fill="none" stroke="#fff" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg></div>
       <span class="logo-text">Virtual SIM</span>
     </a>
     <div class="nav-links">
-      <a href="esim.html" class="nav-link active">eSIM Generator</a>
+      <a href="esim.html" class="nav-link active">Générateur eSIM</a>
       <a href="list.html" class="nav-link">Listing</a>
       <a href="index.html" class="nav-link">Chat</a>
     </div>
@@ -149,248 +74,131 @@
 
   <div class="layout">
     <section>
-      <div class="card" style="margin-bottom:20px">
+      <div class="card">
         <div class="card-title">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
-          Create eSIM Profile
+          <svg width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><rect x="2" y="5" width="20" height="14" rx="2"/><path d="M2 10h20"/></svg>
+          Créer un profil eSIM
         </div>
-
         <div class="field-group">
-          <div>
-            <label for="profileName">Profile name</label>
-            <input id="profileName" placeholder="e.g. Work" />
-          </div>
-          <div>
-            <label for="operator">Operator</label>
-            <input id="operator" placeholder="e.g. ExampleMNO" />
-          </div>
+          <div><label for="profileName">Nom du profil</label><input id="profileName" placeholder="ex: Pro" /></div>
+          <div><label for="operator">Opérateur</label><input id="operator" placeholder="ex: ExampleMNO" /></div>
         </div>
-
         <div class="field-group">
-          <div>
-            <label for="planType">Plan type</label>
-            <select id="planType">
-              <option>Data only</option>
-              <option>Voice + Data</option>
-              <option>IoT</option>
-            </select>
-          </div>
-          <div>
-            <label for="validityDays">Validity (days)</label>
-            <input id="validityDays" type="number" min="1" value="30" />
-          </div>
+          <div><label for="planType">Type de plan</label><select id="planType"><option>Data uniquement</option><option>Voix + Data</option><option>IoT</option></select></div>
+          <div><label for="validityDays">Validité (jours)</label><input id="validityDays" type="number" min="1" value="30" /></div>
         </div>
-
         <div class="field-group">
-          <div>
-            <label for="smDp">SM‑DP+ address</label>
-            <input id="smDp" placeholder="sm-dp.example.com" value="sm-dp.example.com" />
-          </div>
-          <div>
-            <label for="activationLen">Activation code length</label>
-            <input id="activationLen" type="number" min="6" max="64" value="12" />
-          </div>
+          <div><label for="smDp">Adresse SM‑DP+</label><input id="smDp" placeholder="sm-dp.example.com" value="sm-dp.example.com" /></div>
+          <div><label for="activationLen">Longueur code activation</label><input id="activationLen" type="number" min="6" max="64" value="12" /></div>
         </div>
-
         <div class="actions">
           <button id="generateBtn" class="btn btn-primary">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="12 5 12 19"/><polyline points="19 12 12 19 5 12"/></svg>
-            Generate eSIM
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="12 5 12 19"/><polyline points="19 12 12 19 5 12"/></svg>
+            Générer eSIM
           </button>
           <button id="importBtn" class="btn btn-secondary">
-            <svg width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-            Import JSON
+            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            Importer JSON
           </button>
           <input id="importFile" type="file" accept="application/json" style="display:none" />
         </div>
-
         <div id="dropZone" class="drop-zone">
-          <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
-          Drop eSIM JSON files here, or click to browse
+          <svg width="22" height="22" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24" style="margin:0 auto 8px;display:block;opacity:0.4"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+          Déposer des fichiers JSON eSIM ici, ou cliquer pour parcourir
         </div>
       </div>
-
       <div class="card">
-        <div class="section-label">Saved profiles</div>
-        <div id="profilesList" class="profile-list">
-          <div class="empty">No profiles yet — generate one above.</div>
-        </div>
+        <div class="section-label">Profils sauvegardés</div>
+        <div id="profilesList" class="profile-list"><div class="empty">Aucun profil — générez-en un ci-dessus.</div></div>
       </div>
     </section>
 
     <aside>
       <div class="card">
         <div class="card-title">
-          <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
-          Generated profile
+          <svg width="15" height="15" fill="none" stroke="var(--accent)" stroke-width="2" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18"/></svg>
+          Profil généré
         </div>
-
-        <div id="generatedCard">
-          <div class="empty">No profile yet — generate one.</div>
-        </div>
-
+        <div id="generatedCard"><div class="empty">Aucun profil — générez-en un.</div></div>
         <div id="qr"></div>
-
         <div id="exportActions" class="actions" style="display:none">
           <button id="downloadJSON" class="btn btn-ghost">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            JSON
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> JSON
           </button>
           <button id="copyPayload" class="btn btn-ghost">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
-            Copy
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copier
           </button>
           <button id="downloadQR" class="btn btn-ghost">
-            <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="4 17 4 20 7 20"/><polyline points="17 20 20 20 20 17"/><polyline points="20 7 20 4 17 4"/><polyline points="7 4 4 4 4 7"/></svg>
-            QR
+            <svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="4 17 4 20 7 20"/><polyline points="17 20 20 20 20 17"/><polyline points="20 7 20 4 17 4"/><polyline points="7 4 4 4 4 7"/></svg> QR
           </button>
         </div>
-
-        <div class="note" style="margin-top:16px">
-          <strong>Note:</strong> This generates mock profiles for testing only. Real eSIM provisioning requires operator SM‑DP+ infrastructure and secure key management.
-        </div>
+        <div class="note"><strong>Note :</strong> Profils simulés à des fins de test uniquement. Un vrai eSIM nécessite une infrastructure SM‑DP+ opérateur.</div>
       </div>
     </aside>
   </div>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
   <script>
-  (function () {
-    const STORAGE = 'esim_profiles_v1';
-    const randomDigits = n => Array.from({length: n}, () => Math.floor(Math.random() * 10)).join('');
-    const randomHex = n => Array.from({length: n}, () => '0123456789ABCDEF'[Math.floor(Math.random() * 16)]).join('');
-    const uid = (p = 'p') => p + '_' + Math.random().toString(36).slice(2, 10);
-    const generateICCID = () => '89' + randomDigits(18);
-    const generateEID = () => randomHex(32);
-    const generateActivationCode = (len = 12) => {
-      const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-      return Array.from({length: len}, () => chars[Math.floor(Math.random() * chars.length)]).join('');
-    };
-    const escapeHtml = s => s ? String(s).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])) : '';
-
-    let profiles = [];
-    let current = null;
-    let currentPayload = null;
-
-    function load() { try { profiles = JSON.parse(localStorage.getItem(STORAGE) || '[]'); } catch { profiles = []; } }
-    function persist() { localStorage.setItem(STORAGE, JSON.stringify(profiles)); }
-
-    function renderProfiles() {
-      const el = document.getElementById('profilesList');
-      if (!profiles.length) { el.innerHTML = '<div class="empty">No profiles yet — generate one above.</div>'; return; }
-      el.innerHTML = profiles.map(p => `
-        <div class="profile-item">
-          <div class="profile-item-info">
-            <div class="profile-name">${escapeHtml(p.name)}</div>
-            <div class="profile-sub">${escapeHtml(p.operator)} · <span class="badge badge-plan">${escapeHtml(p.planType)}</span></div>
-          </div>
-          <div class="profile-actions">
-            <button class="icon-btn" data-show="${p.id}" title="Show">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg>
-            </button>
-            <button class="icon-btn" data-dl="${p.id}" title="Download">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-            </button>
-            <button class="icon-btn danger" data-del="${p.id}" title="Delete">
-              <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg>
-            </button>
-          </div>
-        </div>`).join('');
-
-      el.querySelectorAll('[data-show]').forEach(b => b.addEventListener('click', () => showProfile(b.dataset.show)));
-      el.querySelectorAll('[data-dl]').forEach(b => b.addEventListener('click', () => downloadProfile(b.dataset.dl)));
-      el.querySelectorAll('[data-del]').forEach(b => b.addEventListener('click', () => deleteProfile(b.dataset.del)));
+  (function(){
+    const STORAGE='esim_profiles_v1';
+    const rDigits=n=>Array.from({length:n},()=>Math.floor(Math.random()*10)).join('');
+    const rHex=n=>Array.from({length:n},()=>'0123456789ABCDEF'[Math.floor(Math.random()*16)]).join('');
+    const uid=(p='p')=>p+'_'+Math.random().toString(36).slice(2,10);
+    const genICCID=()=>'89'+rDigits(18);
+    const genEID=()=>rHex(32);
+    const genCode=(len=12)=>{const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789';return Array.from({length:len},()=>c[Math.floor(Math.random()*c.length)]).join('');};
+    const esc=s=>s?String(s).replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":"&#39;"}[m])):'';
+    let profiles=[],current=null,currentPayload=null;
+    function load(){try{profiles=JSON.parse(localStorage.getItem(STORAGE)||'[]');}catch{profiles=[];}}
+    function persist(){localStorage.setItem(STORAGE,JSON.stringify(profiles));}
+    function renderProfiles(){
+      const el=document.getElementById('profilesList');
+      if(!profiles.length){el.innerHTML='<div class="empty">Aucun profil — générez-en un.</div>';return;}
+      el.innerHTML=profiles.map(p=>`<div class="profile-item"><div><div class="profile-name">${esc(p.name)}</div><div class="profile-sub">${esc(p.operator)} · <span class="badge-plan">${esc(p.planType)}</span></div></div><div class="profile-actions">
+        <button class="icon-btn" data-show="${p.id}" title="Afficher"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/></svg></button>
+        <button class="icon-btn" data-dl="${p.id}" title="Télécharger"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></button>
+        <button class="icon-btn danger" data-del="${p.id}" title="Supprimer"><svg width="12" height="12" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14H6L5 6"/></svg></button>
+        </div></div>`).join('');
+      el.querySelectorAll('[data-show]').forEach(b=>b.addEventListener('click',()=>showProfile(b.dataset.show)));
+      el.querySelectorAll('[data-dl]').forEach(b=>b.addEventListener('click',()=>dlProfile(b.dataset.dl)));
+      el.querySelectorAll('[data-del]').forEach(b=>b.addEventListener('click',()=>delProfile(b.dataset.del)));
     }
-
-    function showProfile(id) { const p = profiles.find(x => x.id === id); if (p) renderGenerated(p); }
-
-    function downloadProfile(id) {
-      const p = profiles.find(x => x.id === id);
-      if (!p) return;
-      const blob = new Blob([JSON.stringify(p, null, 2)], {type: 'application/json'});
-      const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
-      a.download = (p.name || 'esim') + '.json'; a.click(); URL.revokeObjectURL(a.href);
+    function showProfile(id){const p=profiles.find(x=>x.id===id);if(p)renderGenerated(p);}
+    function dlProfile(id){const p=profiles.find(x=>x.id===id);if(!p)return;const b=new Blob([JSON.stringify(p,null,2)],{type:'application/json'});const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=(p.name||'esim')+'.json';a.click();URL.revokeObjectURL(a.href);}
+    function delProfile(id){if(!confirm('Supprimer ce profil ?'))return;profiles=profiles.filter(x=>x.id!==id);persist();renderProfiles();if(current?.id===id){document.getElementById('generatedCard').innerHTML='<div class="empty">Aucun profil.</div>';document.getElementById('qr').innerHTML='';document.getElementById('exportActions').style.display='none';current=null;currentPayload=null;}}
+    function renderGenerated(p){
+      current=p;
+      document.getElementById('generatedCard').innerHTML=`<div class="preview-card"><div class="preview-name">${esc(p.name)}</div>${[['Opérateur',p.operator],['ICCID',p.iccid],['EID',p.eid],['Activation',p.activationCode],['SM‑DP+',p.smDp],['Plan',p.planType],['Validité',p.validityDays+' j']].map(([k,v])=>`<div class="preview-row"><span class="preview-key">${k}</span><span class="preview-val">${esc(String(v))}</span></div>`).join('')}</div>`;
+      const qrEl=document.getElementById('qr');qrEl.innerHTML='';
+      currentPayload=JSON.stringify({iccid:p.iccid,eid:p.eid,activationCode:p.activationCode,smDp:p.smDp,profileName:p.name,operator:p.operator});
+      try{new QRCode(qrEl,{text:currentPayload,width:180,height:180,colorDark:'#212529',colorLight:'#ffffff'});}
+      catch{qrEl.textContent=currentPayload;}
+      document.getElementById('exportActions').style.display='flex';
     }
-
-    function deleteProfile(id) {
-      if (!confirm('Delete this profile?')) return;
-      profiles = profiles.filter(x => x.id !== id); persist(); renderProfiles();
-      if (current?.id === id) { document.getElementById('generatedCard').innerHTML = '<div class="empty">No profile yet — generate one.</div>'; document.getElementById('qr').innerHTML = ''; document.getElementById('exportActions').style.display = 'none'; current = null; currentPayload = null; }
+    function importFromParsed(parsed){
+      let list=Array.isArray(parsed)?parsed:parsed?.id?[parsed]:Array.isArray(parsed?.profiles)?parsed.profiles:null;
+      if(!list)return false;
+      list.forEach(p=>{if(!profiles.find(x=>x.id===p.id))profiles.push(p);});
+      persist();renderProfiles();return true;
     }
-
-    function renderGenerated(p) {
-      current = p;
-      const card = document.getElementById('generatedCard');
-      card.innerHTML = `
-        <div class="preview-card">
-          <div class="preview-name">${escapeHtml(p.name)}</div>
-          ${[['Operator', p.operator], ['ICCID', p.iccid], ['EID', p.eid], ['Activation', p.activationCode], ['SM‑DP+', p.smDp], ['Plan', p.planType], ['Validity', p.validityDays + ' days']].map(([k, v]) =>
-            `<div class="preview-row"><span class="preview-key">${k}</span><span class="preview-val">${escapeHtml(String(v))}</span></div>`).join('')}
-        </div>`;
-      const qrEl = document.getElementById('qr');
-      qrEl.innerHTML = '';
-      currentPayload = JSON.stringify({iccid: p.iccid, eid: p.eid, activationCode: p.activationCode, smDp: p.smDp, profileName: p.name, operator: p.operator});
-      try { new QRCode(qrEl, {text: currentPayload, width: 180, height: 180, colorDark: '#0f172a', colorLight: '#ffffff'}); }
-      catch { qrEl.textContent = currentPayload; }
-      document.getElementById('exportActions').style.display = 'flex';
-    }
-
-    function importProfilesFromParsed(parsed) {
-      let list = Array.isArray(parsed) ? parsed : parsed?.id ? [parsed] : Array.isArray(parsed?.profiles) ? parsed.profiles : null;
-      if (!list) return false;
-      list.forEach(p => { if (!profiles.find(x => x.id === p.id)) profiles.push(p); });
-      persist(); renderProfiles(); return true;
-    }
-
-    document.addEventListener('DOMContentLoaded', () => {
-      load(); renderProfiles();
-
-      document.getElementById('generateBtn').addEventListener('click', () => {
-        const name = document.getElementById('profileName').value.trim() || ('Profile_' + (profiles.length + 1));
-        const operator = document.getElementById('operator').value.trim() || 'ExampleOperator';
-        const p = {
-          id: uid('esim'), name, operator,
-          planType: document.getElementById('planType').value,
-          validityDays: parseInt(document.getElementById('validityDays').value) || 30,
-          smDp: document.getElementById('smDp').value.trim() || 'sm-dp.example.com',
-          iccid: generateICCID(), eid: generateEID(),
-          activationCode: generateActivationCode(parseInt(document.getElementById('activationLen').value) || 12),
-          createdAt: new Date().toISOString()
-        };
-        profiles.push(p); persist(); renderProfiles(); renderGenerated(p);
+    document.addEventListener('DOMContentLoaded',()=>{
+      load();renderProfiles();
+      document.getElementById('generateBtn').addEventListener('click',()=>{
+        const name=document.getElementById('profileName').value.trim()||('Profil_'+(profiles.length+1));
+        const operator=document.getElementById('operator').value.trim()||'ExampleOperator';
+        const p={id:uid('esim'),name,operator,planType:document.getElementById('planType').value,validityDays:parseInt(document.getElementById('validityDays').value)||30,smDp:document.getElementById('smDp').value.trim()||'sm-dp.example.com',iccid:genICCID(),eid:genEID(),activationCode:genCode(parseInt(document.getElementById('activationLen').value)||12),createdAt:new Date().toISOString()};
+        profiles.push(p);persist();renderProfiles();renderGenerated(p);
       });
-
-      document.getElementById('downloadJSON').addEventListener('click', () => { if (current) downloadProfile(current.id); });
-      document.getElementById('copyPayload').addEventListener('click', () => {
-        if (!currentPayload) return alert('No payload to copy');
-        navigator.clipboard?.writeText(currentPayload).then(() => alert('Payload copied!')).catch(() => alert('Copy failed'));
-      });
-      document.getElementById('downloadQR').addEventListener('click', () => {
-        const qr = document.getElementById('qr');
-        const img = qr.querySelector('img'), canvas = qr.querySelector('canvas');
-        const src = img?.src || (canvas ? canvas.toDataURL('image/png') : null);
-        if (!src) { alert('QR not available'); return; }
-        const a = document.createElement('a'); a.href = src; a.download = (current?.name || 'esim') + '-qr.png'; a.click();
-      });
-
-      document.getElementById('importBtn').addEventListener('click', () => document.getElementById('importFile').click());
-      document.getElementById('importFile').addEventListener('change', e => {
-        const f = e.target.files[0]; if (!f) return;
-        const r = new FileReader(); r.onload = ev => { try { if (!importProfilesFromParsed(JSON.parse(ev.target.result))) alert('No profiles found in file'); } catch { alert('Invalid JSON'); } };
-        r.readAsText(f); e.target.value = '';
-      });
-
-      const dz = document.getElementById('dropZone');
-      dz.addEventListener('click', () => document.getElementById('importFile').click());
-      dz.addEventListener('dragover', e => { e.preventDefault(); dz.classList.add('drag-over'); });
-      dz.addEventListener('dragleave', () => dz.classList.remove('drag-over'));
-      dz.addEventListener('drop', e => {
-        e.preventDefault(); dz.classList.remove('drag-over');
-        Array.from(e.dataTransfer.files).filter(f => f.name.endsWith('.json') || f.type.includes('json')).forEach(f => {
-          const r = new FileReader(); r.onload = ev => { try { if (!importProfilesFromParsed(JSON.parse(ev.target.result))) alert('No profiles found'); } catch { alert('Invalid JSON'); } };
-          r.readAsText(f);
-        });
-      });
+      document.getElementById('downloadJSON').addEventListener('click',()=>{if(current)dlProfile(current.id);});
+      document.getElementById('copyPayload').addEventListener('click',()=>{if(!currentPayload)return alert('Rien à copier');navigator.clipboard?.writeText(currentPayload).then(()=>alert('Copié !')).catch(()=>alert('Copie échouée'));});
+      document.getElementById('downloadQR').addEventListener('click',()=>{const qr=document.getElementById('qr');const img=qr.querySelector('img'),canvas=qr.querySelector('canvas');const src=img?.src||(canvas?canvas.toDataURL('image/png'):null);if(!src){alert('QR non disponible');return;}const a=document.createElement('a');a.href=src;a.download=(current?.name||'esim')+'-qr.png';a.click();});
+      document.getElementById('importBtn').addEventListener('click',()=>document.getElementById('importFile').click());
+      document.getElementById('importFile').addEventListener('change',e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=ev=>{try{if(!importFromParsed(JSON.parse(ev.target.result)))alert('Aucun profil trouvé');}catch{alert('JSON invalide');}};r.readAsText(f);e.target.value='';});
+      const dz=document.getElementById('dropZone');
+      dz.addEventListener('click',()=>document.getElementById('importFile').click());
+      dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('drag-over');});
+      dz.addEventListener('dragleave',()=>dz.classList.remove('drag-over'));
+      dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('drag-over');Array.from(e.dataTransfer.files).filter(f=>f.name.endsWith('.json')||f.type.includes('json')).forEach(f=>{const r=new FileReader();r.onload=ev=>{try{if(!importFromParsed(JSON.parse(ev.target.result)))alert('Aucun profil trouvé');}catch{alert('JSON invalide');}};r.readAsText(f);});});
     });
   })();
   </script>
